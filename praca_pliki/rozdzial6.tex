@@ -1,0 +1,19 @@
+\chapter{Testy}
+
+Sprawdzenie poprawności działania obu algorytmów miało przebieg dwustopniowy:
+\begin{itemize}
+	\item symulacja modelu behawioralnego,
+	\item uruchomienie algorytmu z warstwą sterującą na dronie.
+\end{itemize}
+
+\section{Testy symulacyjne}
+O ile drugi ze sposobów był traktowany jako etap finalny, zwieńczający pracę nad projektem, to testy symulacyjne przebiegały równolegle z postępem prac nad poszczególnym z algorytmów śledzących. Co więcej, za wzór symulacji obrano uprzednio stworzony model programowy w MATLABie, chociażby ze względu na wykorzystanie tych samych obrazów w celu porównania wyników.
+Moduł symulacyjny stworzony w środowisku Vivado i języku SystemVerilog nie uwzględniał jedynie części logiki zawartej w Block Designie - a więc instancji procesora oraz wejściowego i wyjściowego fragmentu toru wizyjnego. Byłaby to jednak część niepotrzebna, znacznie obciążająca i spowalniająca pracę symulatora. Jako zamiennik, wystarczył zasymulowany komplet sygnałów RGB z informacją o wartości piksela, która została wczytana z pliku tekstowego. Plik przechowujący jedną ramkę obrazu, wygenerowano w MATLABie umieszczając każdy kolejny pixel w nowej linii w formacie heksadecymalnym, po dwa znaki na każdą składową R, G i B.
+
+Podstawowej funkcją symulacji jest możliwość podejrzenia propagowanych w układzie sygnałów w przystosowanym do tego oknie. Jednak ze względu na rozrastający się poziom skomplikowania modułów z czasem postanowiono bezpośrednio porównać wybrane funkcjonalności z pracą modelu programowego. W kodzie architektury stworzono logikę zapisującą do plików określone informacje z pojedynczej iteracji algorytmu. By jednak zapis nie był realizowany na każdym zboczu narastającym zegara, potrzebne było określenie sygnałów wyzwalających - zazwyczaj były to odpowiedniki sygnałów aktywnych. Do analizy stworzono w MATLABie dodatkowy skrypt, który parsował stworzone podczas symulacji pliki, uruchamiał pojedynczy przebieg modelu programowego i porównywał wyniki, określając ilość błędów na danym etapie algorytmu dla całej ramki. Niektóre dane, z racji ograniczenia bitowej reprezentacji w architekturze, wymagały zdefiniowania akceptowalnego poziomu tolerancji błędu.
+
+TBD: Grafika z opisem
+
+\section{Testy na dronie}
+
+TBD
