@@ -40,14 +40,14 @@ Powyższy sprzęt jednak nie jest w pełni skonfigurowany do pracy po wyjęciu z
 	\hspace*{0cm}
 	\includegraphics[width=14cm]{5_drone_photo.jpg}
 	\caption{Zdjęcie przedstawiające w pełni wyposażonego drona. Pod gąbką ochronną skrywa się układ PYNQ}
-	\label{fig:architecture}
+	\label{fig:drone_photo}
 \end{figure}
 
 \subsection{Propagacja sygnałów}
-Zbudowanie drona w oparciu o gotowe komponenty nie jest zadaniem skomplikowanym. Jednak w momencie, gdy doszły elementy zapewniające jego autonomizację, należało dokładnie przemyśleć jego przebudowę. Poniższy schemat przedstawia architekturę sygnałową.
-\begin{figure}[h]
+Zbudowanie drona w oparciu o gotowe komponenty nie jest zadaniem skomplikowanym. Jednak w momencie, gdy doszły elementy zapewniające jego autonomizację, należało dokładnie przemyśleć jego przebudowę. Schemat \ref{fig:architecture} przedstawia architekturę sygnałową.
+\begin{figure}[]
 	\centering
-	\includegraphics[width=12cm]{5_drone_architecture.png}
+	\includegraphics[width=14cm]{5_drone_architecture.png}
 	\caption{Architektura sygnałowa tworzonego projektu}
 	\label{fig:architecture}
 \end{figure}
@@ -158,6 +158,10 @@ Pozostałymi peryferiami są dwa interfejsy UART. Lokalizacją dla pierwszego in
 
 W aplikacji zaimplementowano nadrzędną maszynę stanu, której tempo pracy jest nadane przez odbierane co sekundę wiadomości z autopilota o ID=0, które noszą nazwę „Heartbeat”. Dzięki temu prostemu zabiegowi nie ma potrzeby korzystania z wewnętrznych liczników czy tworzenia funkcji opóźniających. Warunkiem pracy maszyny stanu jest obecność sygnału \textit{trigger\char`_algorithm}. Po jego zboczu narastającym następuje próba uzbrojenia drona; po zboczu opadającym procesor wyśle komendę rozpoczynającą proces lądowania. Bardziej szczegółowy opis komunikacji z dronem przedstawia schemat:
 
-TBD
-
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=16cm]{5_PS_FSM.jpg}
+	\caption{Nadrzędny schemat działania systemu}
+	\label{fig:PL_FSM_sch}
+\end{figure}
 
