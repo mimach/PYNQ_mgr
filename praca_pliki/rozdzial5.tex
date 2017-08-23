@@ -177,3 +177,17 @@ Podstawowym warunkiem pracy maszyny stanu jest obecność sygnału \textit{trigg
 	\label{fig:PL_FSM_sch}
 \end{figure}
 
+Po otrzymaniu z PL sygnałow sterujących obliczane są przesunięcia (w metrach):
+\begin{equation}
+\left.\begin{aligned}
+x&= \frac{skala_{zadana}-skala}{x_w}\\
+y&= \frac{x_{pos}-x_{zadane}}{skala\cdot y_w}\\
+z&= \frac{y_{pos}-y_{zadane}}{skala\cdot z_w},\\
+\end{aligned}\right.
+\end{equation}
+gdzie \textit{yPos, xPos, skala} to informacje pochodzące z algorytmów MS/HoG+SVM, a \textit{x_w,y_w,z_w} są empirycznie dobranymi współczynnikami. Warto zwrócić uwagę na zmianę osi układu współrzędnych drona:
+\begin{itemize}
+	\item \textit{x} - oś pozioma odpowiadająca kierunkowi ruchu samolotu (aspekt głębokości na obrazie),
+	\item \textit{y} - oś pozioma prostopadła do osi \textit{x},
+	\item \textit{z} - oś pionowa, zwrócona w dół.
+\end{itemize}
