@@ -44,7 +44,7 @@ Algorytm MeanShift użyty w procesie śledzenia wykorzystuje rozkład prawdopodo
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=6cm]{3_HSV.jpg}
+	\includegraphics[width=6cm]{2_HSV.jpg}
 	\caption{Stożkowa przestrzeń barw modelu HSV}
 	\label{fig:HSV_cone}
 \end{figure}
@@ -93,8 +93,8 @@ W równaniu \ref{eq:ms2}, $w_i(y_0)$ są wagami dla poszczególnych punktów.
 Rysunek  \ref{fig:ms_vector} ilustruje przykładowe wygenerowanie wektora MeanShift, gdzie niebieskim okręgiem zaznaczono obszar podlegający działaniu algorytmu. Wszystkie punkty mają tu jednak identyczną wagę.
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=10cm]{3_meanshift.jpg}
-	\caption{Graficzna interpretacja wektora MeanShift - http://slideplayer.com/slide/4973214/}
+	\includegraphics[width=10cm]{2_meanshift.jpg}
+	\caption{Graficzna interpretacja wektora MeanShift \cite{Egorov}}
 	\label{fig:ms_vector}
 \end{figure}
 
@@ -111,7 +111,7 @@ K(u)=\begin{cases}
 gdzie $u$ jest odległością pomiędzy punktem a środkiem obszaru, a $b$ jest połową jego boku (zakładając, że obszarem jest kwadrat). Rysunek \ref{fig:kernel} przedstawia jądro o wymiarach 100x100 - w punkcie (50,50) osiąga maksymalną wartość 1 (natomiast $u=0$).
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=16cm]{3_kernel.jpg}
+	\includegraphics[width=16cm]{2_kernel.jpg}
 	\caption{Jądro obszaru o wymiarach 100x100 (wygenerowane w programie MATLAB)}
 	\label{fig:kernel}
 \end{figure}
@@ -221,7 +221,7 @@ W momencie spełnienia jednego z powyższych warunków, akceptuje się dotychcza
 \begin{figure}
 	\centering
 	\hspace*{-3cm}
-	\includegraphics[width=14.5cm]{3_MS_visio.png}
+	\includegraphics[width=14.5cm]{2_MS_visio.png}
 	\caption{Schemat blokowy algorytmu MeanShift}
 	\label{fig:MS_diagram}
 \end{figure}
@@ -277,7 +277,7 @@ Przykładem może być sytuacja przedstawiona na rysunku \ref{fig:HOG_interpolat
 \begin{figure}[h]
 	\centering
 	\hspace*{1cm}
-	\includegraphics[width=12cm]{3_HOG_interpolation.jpg}
+	\includegraphics[width=12cm]{2_HOG_interpolation.jpg}
 	\caption{Przykładowy problem liniowej interpolacji}
 	\label{fig:HOG_interpolation}
 \end{figure}
@@ -331,7 +331,7 @@ Klasyfikator jest w stanie rozpoznać postać na obrazie $128\times 64$, jeśli 
 	\centering
 	\captionsetup{justification=centering,margin=1cm}
 	\hspace*{0cm}
-	\includegraphics[width=15.5cm]{3_scaling.jpg}
+	\includegraphics[width=15.5cm]{2_scaling.jpg}
 	\caption{Skalowanie 1:1, 1:2 oraz 1:4 z naniesionym przykładowym oknem detekcji $128 \times 64$}
 	\label{fig:HOG_image_examples}
 \end{figure}
@@ -353,7 +353,7 @@ Zgodnie z przyjętymi metodologiami, zestaw ten zawiera gotowy podział na prób
 	\centering
 	\captionsetup{justification=centering,margin=1cm}
 	\hspace*{1cm}
-	\includegraphics[width=14.5cm]{3_HOG_image_examples.jpg}
+	\includegraphics[width=14.5cm]{2_HOG_image_examples.jpg}
 	\caption{Przykłady obrazów ze zbioru wykorzystanego przy uczeniu - po lewej dwie próbki pozytywne, po prawej dwie negatywne}
 	\label{fig:HOG_image_examples}
 \end{figure}
