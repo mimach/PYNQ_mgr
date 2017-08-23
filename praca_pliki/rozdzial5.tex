@@ -169,15 +169,7 @@ Pozostałymi peryferiami są dwa interfejsy UART. Lokalizacją dla pierwszego in
 W aplikacji zaimplementowano nadrzędną maszynę stanu, której tempo pracy jest nadane przez odbierane co sekundę wiadomości z autopilota o ID=0, które noszą nazwę „HEARTBEAT”. Dzięki temu prostemu zabiegowi nie ma potrzeby korzystania z wewnętrznych liczników czy tworzenia funkcji opóźniających. Wybrane rozwiązanie jest dodatkowo uzasadnione tym, że oprogramowanie pilota po otrzymaniu komendy ruchu wymaga cosekundowych wiadomości (SET\_POSITION\_TARGET\_LOCAL\_NED) podtrzymujących informację o prędkości (w przeciwnym wypadku się zatrzymuje). 
 
 Podstawowym warunkiem pracy maszyny stanu jest obecność sygnału \textit{trigger\char`_algorithm}. Po jego zboczu narastającym następuje próba uzbrojenia drona; po zboczu opadającym procesor wyśle komendę rozpoczynającą proces lądowania. Bardziej szczegółowy opis komunikacji z dronem przedstawia schemat \ref{fig:PL_FSM_sch}.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=16cm]{5_PS_FSM.jpg}
-	\caption{Nadrzędny schemat działania systemu}
-	\label{fig:PL_FSM_sch}
-\end{figure}
-
-Po otrzymaniu z PL sygnałow sterujących obliczane są przesunięcia (w metrach):
+Po otrzymaniu z PL sygnałow sterujących obliczane są przesunięcia dla każdej osi (w metrach):
 \begin{equation}
 \left.\begin{aligned}
 x&= \frac{skala_{zadana}-skala}{x_w}\\
@@ -185,9 +177,16 @@ y&= \frac{x_{pos}-x_{zadane}}{skala\cdot y_w}\\
 z&= \frac{y_{pos}-y_{zadane}}{skala\cdot z_w},\\
 \end{aligned}\right.
 \end{equation}
-gdzie \textit{yPos, xPos, skala} to informacje pochodzące z algorytmów MS/HoG+SVM, a \textit{x_w,y_w,z_w} są empirycznie dobranymi współczynnikami. Warto zwrócić uwagę na zmianę osi układu współrzędnych drona:
+gdzie $y_{pos}$, $x_{pos}$, $skala$ to informacje pochodzące z algorytmów MS/HoG+SVM, a \textit{$x_w$, $y_w$, $z_w$} są empirycznie dobranymi współczynnikami dopasowującymi wartości do jednostek. Warto zwrócić uwagę na zmianę osi układu współrzędnych drona:
 \begin{itemize}
 	\item \textit{x} - oś pozioma odpowiadająca kierunkowi ruchu samolotu (aspekt głębokości na obrazie),
 	\item \textit{y} - oś pozioma prostopadła do osi \textit{x},
 	\item \textit{z} - oś pionowa, zwrócona w dół.
 \end{itemize}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=16cm]{5_PS_FSM.jpg}
+\caption{Nadrzędny schemat działania systemu}
+\label{fig:PL_FSM_sch}
+\end{figure}
