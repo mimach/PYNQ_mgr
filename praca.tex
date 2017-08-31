@@ -1,4 +1,4 @@
-\documentclass[12pt]{aghdpl}
+\documentclass[12pt,notitlepage]{aghdpl}
 % \documentclass[en,11pt]{aghdpl}  % praca w języku angielskim
 
 % Lista wszystkich języków stanowiących języki pozycji bibliograficznych użytych w pracy.
@@ -107,7 +107,6 @@ backend=bibtex
 % defines the X column to use m (\parbox[c]) instead of p (`parbox[t]`)
 \newcolumntype{C}[1]{>{\hsize=#1\hsize\centering\arraybackslash}X}
 
-
 %---------------------------------------------------------------------------
 
 \author{Miłosz Mach}
@@ -168,16 +167,16 @@ backend=bibtex
 \setcounter{tocdepth}{2}
 \tableofcontents
 \clearpage
-\listoftables
-\input{praca_pliki/rozdzial1}
-\input{praca_pliki/rozdzial2}
-\input{praca_pliki/rozdzial3}
-\input{praca_pliki/rozdzial4}
-\input{praca_pliki/rozdzial5}
-\input{praca_pliki/rozdzial6}
-\input{praca_pliki/rozdzial7}
+\input{praca_pliki/source_wstep}
+\input{praca_pliki/source_przeglad}
+\input{praca_pliki/source_algorytmy}
+\input{praca_pliki/source_model}
+\input{praca_pliki/source_implementacja}
+\input{praca_pliki/source_integracja}
+\input{praca_pliki/source_weryfikacja}
+\input{praca_pliki/source_podsumowanie}
 \appendix
-\input{praca_pliki/rozdzial8}
+\input{praca_pliki/source_dvd_content}
 
 
 \printbibliography

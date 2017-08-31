@@ -1,0 +1,25 @@
+\chapter{Podsumowanie i możliwości rozwoju pracy}
+
+W zrealizowanym projekcie przedstawiono sprzętową realizację detekcji i śledzenia osoby w heterogenicznym układzie Zynq SoC, na potrzeby kontroli bezzałogowego statku powietrznego. 
+Osiągnięto przetwarzanie obrazu o rozdzielczości $1280\times 720$ dla 60 klatek na sekundę, z prędkością \textit{60Hz} i \textit{30Hz} odpowiednio dla algorytmów MeanShift oraz HoG+SVM.
+
+Na uwagę zasługuje warstwa najwyższa, łącząca pracę obu algorytmów i komunikująca się z autopilotem Pixhawk. 
+Wykorzystanie protokołu MAVLink pozwala stworzyć platformę, która jest w stanie wydawać polecenia ruchu bez udziału pilota.
+
+%TODO jeszcze o budowie. Ogólnie nieco obszerniej by to można opisać.
+
+Autor uważa jednak, że bazując na testowanej konfiguracji sprzętowo-programowej można dokonać szeregu usprawnień, podnoszących ogólną niezawodność rozwiązania. %TODO to jednak tu nie pasuje
+Jednym z nich jest próba zredukowania liczby fałszywych detekcji (HoG+SVM) poprzez zmianę wielkości bloków lub komórek. %TODO no właśnie, jakoś Pan to testował ? Bo chyba tego tam nie ma.
+Innym pomysłem mogłoby być proste zwiększenie liczby analizowanych skal. %TODO liczby ? %ODP OK
+Kolejnym usprawnieniem, tym razem dla algorytmu MeanShift, byłoby zlikwidowanie rzadkich sytuacji utraty zbieżności ze śledzonym obszarem -- co skutkuje „wędrowaniem okna”. %TODO wie Pan dlaczego ?
+Barierą na drodze większości zmian jest liczba dostępnych zasobów w układzie -- wymagana byłaby zmiana układu na dysponujący zwłaszcza większą liczbą bloków BRAM. 
+Istnieją jednak zmiany niewymagające ingerencji w kod. 
+Do podstawowych należałby lepszy dobór ustawień programowych kamery w celu poprawy rejestrowanych (wysyłanych kablem) kolorów. Kamery sportowe są wyposażone w wiele usprawnień (tryb nocny, rektyfikacja,itp.), które niekoniecznie muszą poprawiać działanie systemu wizyjnego %TODO to jest niejasne, a ważne %ODP OK
+Kolejną mogłaby być lepsza stabilizacja obrazu - ze względu na podpięty do kamery kabel zmienia się jej środek ciężkości, co zaburza pracę gimbala - silnik na jednej z osi obrotu musiał nawet być z tego powodu wyłączony. %TODO szczegóły %ODP OK
+Ostatnią, mającą największy wpływ na śledzenie, byłoby poprawienie właściwości lotnych drona. Mowa tu głównie o problemach z płynnością ruchu oraz utrzymywaniem drona w zadanej pozycji - co może mieć związek z ustawieniami akceleratorów lub przetwarzaniem sygnału GPS.%TODO j.w. %ODP OK
+
+Ponadto, zbudowana platforma stanowi ogromny potencjał dla nowych pomysłów związanych z autonomizacją dronów. 
+Podstawowym kierunkiem mogłaby być zdolność omijania przeszkód (nadal kosztowna opcja w dronach komercyjnych). Detekcja mogłaby być realizowana przez specjalistyczne czujniki odległościowe, stereowizję lub nawet lidar. %TODO odległościowe, sterowizja, lidar %ODP OK
+
+
+
