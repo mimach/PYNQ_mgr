@@ -1,4 +1,4 @@
-\chapter{Implementacja sprzętowa systemu wizyjnego}
+\chapter{Implementacja sprzętowo-programowa systemu wizyjnego}
 
 %TODO krótki wstępn. M. in. po co implementacja sprzętowa.
 Celem implementacji sprzętowej jest realizacja określonej funkcjonalności przez dany układ scalony. W przeciwieństwie do programu komputerowego, urządzenie realizujące sprzętowo odpowiednio zaimplementowany algorytm cechuje się większą szybkością działania. Wadą jest z kolei koszt i czas produkcji takiego rozwiązania.
@@ -148,7 +148,7 @@ Po zakończeniu zapisu fragmentu o wymiarach $130 \times 130$, obliczana jest fu
 Analizując możliwości pracy układu okazało się, że algorytm jest w stanie pracować z częstotliwością \textit{60Hz}. Może bowiem przetworzyć rozpatrywany fragment z bieżącej klatki obrazu w czasie ok. XXX sekund, co przy 16.(6)ms czasu trwania ramki zdecydowanie pozwala zakończyć analizę przed zapisem obszaru z kolejnej ramki.  %TODO przedstawić tą analizę... %ODP OK
 
 
-%TODO  Tu opisać koncepcję ralizacji... 
+%TODO  Tu opisać koncepcję ralizacji...  %ODP OK
 
 \subsection{Konwersja przestrzeni barw RGB->HSV}
 %TODO To dać w subsection %ODP OK
@@ -168,6 +168,7 @@ Jej ostateczną organizację przedstawia tabela \ref{tab:kerBRAM}. W kolumnie �
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 \begin{table}[h]
 \centering
+\caption{Organizacja pamięci BRAM \textit{kernel\char`_ram}}
 \begin{tabular}{|P{5cm} |P{3cm} |P{2.5cm}|}
 
 \hline
@@ -178,7 +179,7 @@ Gradienty: $g_x$, $g_y$		& 10000:19999	& S0.11, S0.11\\
 \hline
 Norma: $\sqrt{g_x^2+g_y^2}$	& 20000:29999	& U0.11\\ \hline
 \end{tabular}
-\caption{Organizacja pamięci BRAM \textit{kernel\char`_ram}}
+
 \label{tab:kerBRAM}
 \end{table}
 %TODO wypda objaśnić kolumnę format %ODP OK
@@ -238,6 +239,7 @@ Zamiennie, co klatkę, wykonywany jest zapis najnowszych danych do jednej połow
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 \begin{table}[h]
 	\centering
+	\caption{Organizacja pamięci BRAM \textit{image\char`_data\char`_ram}}
 	\begin{tabular}{|P{4cm} |P{3cm} |P{2cm}|}
 		
 		\hline
@@ -247,7 +249,7 @@ Zamiennie, co klatkę, wykonywany jest zapis najnowszych danych do jednej połow
 		Klatka $t\%2==1$		& 16900:33799	& U9\\ 
 		\hline
 	\end{tabular}
-	\caption{Organizacja pamięci BRAM \textit{image\char`_data\char`_ram}}
+
 	\label{tab:imageBRAM}
 \end{table}
 %TODO brak referencji do tabeli w tekście %ODP OK
@@ -263,6 +265,7 @@ W tym celu utworzono pamięć BRAM, która przechowuje dwa histogramy dla wzorca
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 \begin{table}[h]
 	\centering
+	\caption{Organizacja pamięci BRAM \textit{histogram\char`_ram}}
 	\begin{tabular}{|P{4cm} |P{3cm} |P{2cm}|}
 		
 		\hline
@@ -272,7 +275,7 @@ W tym celu utworzono pamięć BRAM, która przechowuje dwa histogramy dla wzorca
 		Histogram kandydata		& 360:719	& U10.15\\ 
 		\hline
 	\end{tabular}
-	\caption{Organizacja pamięci BRAM \textit{histogram\char`_ram}}
+
 	\label{tab:histBRAM}
 \end{table}
 %TODO brak ref do tab %ODP OK
@@ -366,7 +369,7 @@ Używane są tu trzy równoległe mnożarki, a suma iloczynów jest zaokrąglana
 Kolejny etap to przeskalowanie obrazu wejściowego. 
 Sama idea okazuje się być tym bardziej na miejscu, jeśli wziąć pod uwagę parametry kamery zamontowanej na dronie -- w przypadku tego projektu jest to Xiaomi Yi, urządzenie do zastosowań sportowych i charakteryzujące się dużym kątem widzenia -- 155$^{\circ}$. %TODO myśl dobra, ale styl do zmiany.. %ODP OK
 W efekcie osoba oddalająca się od kamery bardzo szybko zmniejszy swoje wymiary na obrazie. 
-Materiał $720\times 1280$ pikseli przeskalowano do 5 obrazów przy użyciu następujących skal:
+Materiał $1280\times 720$ pikseli przeskalowano do 5 obrazów przy użyciu następujących skal:
 \NumTabs{15}
 \begin{itemize}
 	\item \textbf{1:  2}\tab{:}\tab{$720\times 1280\rightarrow360\times 640$} pikseli
@@ -397,6 +400,7 @@ Przykład dla kilku pierwszych wartości \textit{x\char`_o} jest widoczny w tabe
 \begin{table}[h]
 	\centering
 	\captionsetup{justification=centering,margin=1cm}
+	\caption{Przykładowy przebieg skalowania dla $s_c=2.5$ wraz z przypisywanymi pikselami wejściowymi}	
 	\begin{tabular}{|P{2cm} |P{3cm} |P{2cm}|}	
 		\hline
 		\rowcolor{lightgray} $x_o$ & $x_is_c$ & $x_i$ \\ 
@@ -409,7 +413,6 @@ Przykład dla kilku pierwszych wartości \textit{x\char`_o} jest widoczny w tabe
 		4		& 10	& 10\\ 
 		\hline		
 	\end{tabular}
-	\caption{Przykładowy przebieg skalowania dla $s_c=2.5$ wraz z przypisywanymi pikselami wejściowymi}
 	\label{tab:scaling}
 \end{table}
 
@@ -444,7 +447,7 @@ Konieczne jest zapamiętanie dwóch ostatnich linii -- zrealizowano to przy uży
 Do jednej z nich (oznaczonej numerem \#1) wpisywane są wartości bieżących pikseli.
 Przejście do każdej kolejnej linii obrazu powoduje systematyczną wymianę pikseli na najnowsze - wówczas do kolejki \#2 są zapisywane wartości bezpośrednio z \#1. %TODO trochę potoczny styl tego opisu. Najlepiej rysunek (takie jak jest) %ODP nieco poprawiono
 Logika została zaprojektowana w sposób pozwalający uzyskać jednoczesny dostęp do 3 kolejnych pikseli leżących w linii pionowej. 
-Umożliwia to specjalny tryb modułu FIFO -- First Word Fall Through (FWFT), dzięki któremu pierwsze dostępne słowo jest natychmiastowo wystawiane na wyjście, i tylko zdejmowane (zastępowane kolejnym) w odpowiedzi na wysoki stan sygnału odczytu. %TODO nie duża załuga, tylko umożliwia to %ODP OK
+Umożliwia to specjalny tryb modułu FIFO -- First Word Fall Through (FWFT), dzięki któremu pierwsze dostępne słowo jest natychmiastowo wystawiane na wyjście, i tylko zdejmowane (zastępowane kolejnym) w odpowiedzi na wysoki stan sygnału odczytu \cite{FIFO}. %TODO nie duża załuga, tylko umożliwia to %ODP OK
 Ostatecznie logika, będąc w linii $i$ ($i>1$), obliczy gradient pionowy dla piksela z linii $i-1$. %TODO nie poniżej tylko \ref. no i nie algorytm %ODP OK, \ref umieszczono wyżej
 \begin{figure}[h]
 	\centering
@@ -598,10 +601,10 @@ O ile zapisane w pamięci ROM współczynniki mają postać wektora cech, tak pa
 Wymagało to stworzenia logiki, która łączy ze sobą dane ze ściśle określonych adresów pamięci, interpretując je w postać deskryptora.  
 Opisuje to diagram \ref{fig:hog_feature_histrogram_address}. %TODO nie poniższy, styl.: dane z odpowiendich... %ODP OK
 
-\begin{figure}[!ht]
+\begin{figure}[h!]
 	\centering
 	\captionsetup{justification=centering,margin=1cm}
-	\includegraphics[width=16cm]{4_HOG_Features.png}
+	\includegraphics[width=15cm]{4_HOG_Features.png}
 	\caption{Procedura wyboru adresu pamięci RAM w procesie odczytu kolejnych histogramów}
 	\label{fig:hog_feature_histrogram_address}
 \end{figure} 
@@ -628,7 +631,7 @@ Ostateczna szerokość pojedycznego elementu wynosi S7.40.
 
 Docelowa wartość definiująca detekcję jest sumą wszystkich 16740 przetworzonych elementów oraz jeszcze jednej stałej wyznaczonej na etapie uczenia, \textit{offset} równej $-0.6327$. 
 \textit{Offset} stanowi wartość początkową sumy przy rozpoczęciu obliczeń dla kolejnego wektora cech. %TODO dla kolejnego %ODP OK
-Ze względu na konieczność zapewnienia dobrej dokładności w procesie sumowania, wynik jest zapisywany w notacji S8.40, co wymaga rozszerzenia dodawanych elementów o 8 kopii najbardziej znaczącego bitu (będącego zresztą informacją o znaku).
+Ze względu na konieczność zapewnienia dobrej dokładności w procesie sumowania, wynik jest zapisywany w notacji S7.40.
 
 \subsection{Przetwarzanie wyników}
 
@@ -644,34 +647,319 @@ Skutkiem porównania jest wyłonienie skali z najlepszym wynikiem, a koordynaty 
 
 %TODO Dalej. Zużycie zasobów przez moduł mean-shift i hog/svm - tabelki.%ODP OK
 
-\section{Podsumowanie}
-Proces implementacji sprzętowej szedł w parze z nadzorem wykorzystania zasobów w układzie. Nieodpowiednie zagospodarowanie dostępnymi w logice elementami mogłoby mieć wpływ na rozmieszczenie (routing) sygnałów i problemy związane z ich czasami ustalania lub podtrzymania (setup/hold time) . Tabele \ref{tab:utilizationMS}, \ref{tab:utilizationHOG} oraz \ref{tab:utilizationOverall} przedstawiają wykorzystanie zasobów w układzie Zynq 7Z020.
+\section{Integracja układu FPGA z dronem}
+
+Opisana w poprzednim podrozdziałach architektura sprzętowa dotyczyła dwóch algorytmów, które mogą funkcjonować niezależnie od siebie. Ostnieje jednak jeszcze najwyższa warstwa logiczna, która łączy ich działanie, zwiększając niezawodność działania systemu. Na podstawie ostatecznych wyników śledzenia podejmowane są decyzje związane z ruchem drona. Muszą być one przekazane niezależnej jednostce odpowiedzialnej za stabilizację drona -- autopilotowi. Wymagało do m.in. określenia sposobu komunikacji pomiędzy nim a układem Zynq.
+%TODO do rozbudowy, ale w kontekście zawartości 'nowego" rozdziału początkowego. %ODP OK, rozbudowano rozdział początkowy.
+
+
+\subsection{Zdalne uruchomienie pracy systemu}
+
+%TODO To już może być treść tego rozdziału. Tylko oczywiście po jakimś wstępie. %ODP OK
+
+Początkowo stworzono (i ostatecznie pozostawiono) możliwość rozpoczęcia pracy z wykorzystaniem jednego z przełączników na płycie PYNQ, gdyż prace nad projektem wymagały dość częstego uruchamiania algorytmu jeszcze bez udziału drona. 
+Jednak lot maszyny lub nawet jego start praktycznie wyklucza fizyczny dostęp do układu FPGA, dlatego koniecznością stało się zdalne wyzwolenie pracy algorytmów. 
+Sygnał wyzwalający nosi nazwę \textit{trigger\char`_algorithm}.
+
+Podczas lotu maszyny użytkownik ma pod ręką jedynie aparaturę radiową, z poziomu której może jednak w dość prosty sposób wysyłać sygnały . %TODO wystawiać - potoczne %ODP OK
+Aparatura jest bowiem wyposażona w szereg konfigurowalnych przełączników analogowych i cyfrowych. 
+Ponadto, dane są wysyłane poprzez 16 kanałów -- przy czym do kontroli podstawowych funkcji drona wykorzystuje się zaledwie 4. %TODO raczej nie 16 kanałów tylko przez / poprzez... %ODP OK
+Wybrano zatem jeden z pozostałych dostępnych kanałów, któremu przypisano funkcję trzypoziomowego przełącznika obecnego na panelu urządzenia radiowego.
+
+Sparowany z aparaturą odbiornik, który jest zamocowany na dronie, wysyła wszystkie dane po jednym zestawie przewodów w formie PPM (ang. \textit{Pulse Position Modulation}). %TODO napisać, że odbiornik jest na dronie %ODP OK
+Taki sygnał musiałby być zdekodowany w części PL układu Zynq do uzyskania użytecznej wartości. %TODO nie nie FPGA.. Zynq/lb PL %ODP OK
+Proces dekodowania rozwiązuje jednak autopilot, który konwertuje 16-kanałowy PPM na znacznie prostsze sygnały PWM (ang. \textit{Pulse Width Modulation}) m.in. do kontroli silników. %TODO wystawia %ODP OK
+Co więcej, Pixhawk umożliwia przypisanie reszty kanałów transmisyjnych do pomocniczych wyjść PWM. 
+Rozwiązanie to znalazło zastosowanie chociażby w ustawieniu wartości zadanych serwomechanizmom odpowiedzialnym za pracę gimbala kamery.
+
+%Ostatecznie, postanowiono ustalić warunki kwestią niejasną pozostała szerokość pulsu, który miałby wyzwolić działanie algorytmu. %TODO dalczego niejasną ? %ODP rozpisano się na ten temat poniżej
+Za pomocą oprogramowania Mission Planner, służącego do konfiguracji autopilota, ustawiono zakres szerokości wysyłanego pulsu PWM na $1100-1900$us. Wybranie odpowiedniej wartości wyzwalającej pracę systemu wymagało dodatkowej weryfikacji, podczas której sprawdzono przypadek z wyłączoną aparaturą radiową (brak wejściowego sygnału PPM) i ewentualne błędy w transmisji PWM.
+Do pomiarów zastosowano analizator logiczny ILA wbudowany w środowisko Vivado i stworzono prosty licznik, który jest poddawany następującym operacjom:
+%TODO na którym - styl i po co to ILA - do pomiarów. %ODP OK
+\begin{itemize}
+	\item kasowanie na zboczu narastającym sygnału wejściowego,
+	\item inkrementację podczas aktywnego stanu sygnału,
+	\item przypisanie tej samej wartości w każdym innym przypadku.
+\end{itemize}
+
+Logika jest taktowana zegarem \textit{calc\char`_clk} $=100$MHz i dla poszczególnych pozycji przełącznika na aparaturze radiowej wartości licznika są przedstawione w tabeli \ref{tab:RFswitch}. %TODO do tabeli \ref{HSV_first}, "logika pracuje" styl %ODP OK
+Pokazuje ona, że zakres długości pulsu nie odstaje od normy typowego sygnału PWM, mimo że jest nieco zawężony.
+
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 \begin{table}[h]
 	\centering
+	\caption{Szerokości pulsu PWM dla przełącznika odpowiedzialnego za start algorytmu}	
+	\begin{tabular}{|P{3cm} |P{2cm} |P{2cm}|}
+		
+		\hline
+		\rowcolor{lightgray} Pozycja przełącznika & Wartość licznika & Długość pulsu [ms]  \\ 
+		-1	& 109000 & 1.09	\\ 
+		\hline
+		0	& 149000 & 1.49 \\ 
+		\hline
+		1	& 189000 & 1.89 \\ 
+		\hline
+	\end{tabular}
+	\label{tab:RFswitch}
+\end{table}
+
+Na tej podstawie określono, że warunkiem koniecznym do rozpoczęcia algorytmu będzie wystąpienie dwóch kolejnych pulsów o szerokości przynajmniej 1.8ms (górny limit przezornie ustawiono na 2ms). 
+Analogicznie, zakończenie pracy algorytmu i powrót do ustawień domyślnych będzie miał miejsce po zmianie pozycji przełącznika z „1”, czyli po otrzymaniu dwóch kolejnych pulsów o szerokościach spoza zakresu $[1.8$ms,$2$ms$]$.
+%TODO nie do końca rozumiem jak to z poza zakresu %ODP dopisano dodatkowe info
+
+\subsection{Kontrola pracy algorytmów MeanShift oraz HOG+SVM} %TODO nad pracę -> pracy %ODP OK
+Najwyższa warstwa w części programowalnej Zynq jest odpowiedzialna za integrację działania algorytmów MeanShift i HOG+SVM i zarządza sygnałami używanymi do ich niezależnego uruchamiania. %TODO FPGA-> Zynq (to rozumiem, że używa Pan PS w ogóle) i styl do poprawy. %ODP OK, PS używany, minimalnie opisany niżej
+\subsubsection{Komunikacja pomiędzy PL i PS}
+Nie jest to jednak najwyższy poziom zarządzania -- warstwa ta komunikuje się bowiem z aplikacją uruchomioną w części PS, która jest odpowiedzialna za nadzór nad pracą zarówno autopilota, jak i opisywanej części do tej pory PL układu Zynq.
+Komunikacja pomiędzy PS a PL jest realizowana dwutorowo:
+\begin{itemize}
+	\item PL odbiera ustawienia konfiguracyjne z przestrzeni adresowej 32-bitowych rejestrów. Używanych jest 5 rejestrów, które są inicjalizowane w PS wartościami domyślnymi. Ich opis przedstawia tabela \ref{tab:registersIN}	
+	\item PL wysyła informacje 32-bitowym sygnałem GPIO, który jest skonfigurowany w części PS do wywoływania przerwań po każdej jego zmianie. Utworzone są również 2 dodatkowe rejestry, z których dane odczytywane są w PS podczas obsługi tego przerwania. Strukturę przedstawia tabela \ref {tab:registersOUT}
+\end{itemize} 
+
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\begin{table}[h]
+	\centering
+	\caption{Informacje wysyłane do PS w postaci rejestrów}	
+	\begin{tabular}{|P{1.4cm} |p{9.5cm}| p{1.25cm}| p{1.75cm}|}
+		
+		\hline
+		\rowcolor{lightgray} Adres rejestru & Sygnały & Format & Pozycja w rejestrze  \\ 
+	    --\newline (GPIO)	& \textit{PL\_to\_PS\_control} -- wymuszenie ruchu drona w oparciu o dane rejestru 0x04\newline
+	    \textit{PL\_to\_PS\_status} -- status pracy algorytmów MS/HOG+SVM\newline
+		\textit{trigger\char`_algorithm} -- rozpoczęcie misji (sygnał z aparatury radiowej) & 
+		U1.0  \newline\newline
+		U4.0 \newline\newline
+		U1.0  & [12:12]\newline\newline[7:4]\newline\newline[0:0]\\ 
+		\hline
+		0x04	& $y_{pos}$ -- odegłość do punktu zadanego na osi x obrazu\newline
+		$x_{pos}$ -- odległość do punktu zadanego na osi y obrazu\newline
+		$z_{scale}$-- wartość skali dla ostatnich detekcji & 
+		S10.0  \newline
+		S10.0 \newline
+		U3.2  & [30:20]\newline[18:8]\newline[4:0] \\ 
+		\hline
+
+	\end{tabular}
+	\label{tab:registersOUT}
+\end{table}
+
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\begin{table}[h]
+	\centering
+	\caption{Informacje odbierane z PS w postaci rejestrów}	
+	\begin{tabular}{|P{2cm} |p{8cm}| P{1.5cm}| P{2cm}|}
+		
+		\hline
+		\rowcolor{lightgray} Adres rejestru & Sygnał & Format & Wartość domyślna   \\ 
+		0x00	& \textit{PS\_to\_PL\_run\_alg} -- kontrola pracy maszyny stanów w PL nadzorującej algorytmy MS/HOG+SVM: \newline0 - nieaktywna\newline1 - aktywna & U1.0& $0$\\ 
+		\hline
+		0x04	& \textit{SVM\_threshold} -- wartość progu & S7.24 &$-0.1$\\ 
+		\hline
+		0x08	& \textit{SVM\_strong\_threshold} -- wartość progu drugiego stopnia & S7.24 &$-1$\\ 
+		\hline
+		0x0C	& \textit{SVM\_lost\_iter} -- maksymalna ilość iteracji opartych wyłącznie na wyniku MeanShift & U15.0 & $100$\\ 
+		\hline
+		0x10	& \textit{SVM\_iter\_between\_control} -- ilość iteracji algorytmu SVM pomiędzy aktualizacjami uchybu regulacji do PS & U6.0 & $15$\\ 
+		\hline
+	\end{tabular}
+	\label{tab:registersIN}
+\end{table}
+
+Do rozpoczęcia pracy algorytmów wymagane jest otrzymanie informacji o gotowości drona, czyli ustabilizowaniu pozycji w powietrzu. Służy do tego rejestr \textit{PS\_to\_PL\_run\_alg} opisany w tabeli \ref{tab:registersIN}
+
+
+%Zanim jednak przyjdzie na to pora, zadaniem maszyny stanu jest oczekiwanie na informację o gotowości drona, tj. ustabilizowaniu pozycji w powietrzu. %TODO styl. "zbyt powieściowy" %ODP OK
+
+%TODO napisać co wysyła %ODP wyżej opisano całą komunikację PS-PL
+\subsubsection{Pierwsza detekcja osoby}
+Po otrzymaniu takiego sygnału kolejnym etapem jest skanowanie obrazu w celu pierwszej detekcji postaci. %TODO co znaczy pierwotna %ODP OK
+Przy założeniu, że osoba nie pojawi się w górnej i dolnej części ramki obrazu, można ograniczyć obszar poszukiwań do jej środkowego pasa. Wykorzystywany w tym celu algorytm HOG+SVM uruchamiany jest cyklicznie na sąsiednich oknach detekcji w obrębie tego pasa. Przedstawia to ilustracja \ref{fig:scan_scheme}. %TODO na przesuwanym - styl i niejasne. Tak samo to pokryć. %ODP OK
+Każda ze skal dysponuje obszarem detekcji o wymiarze $144\times 96$, z którego wybierane jest okno detekcji  $128\times 64$ o najniższej wartości odpowiedzi. %TODO nie najlepszy fragment, tylko okno detekcji o najwyżej wartości odpowiedzi. %ODP OK, tyle że u mnie musi być jak najniższa
+
+Chcąc zapewnić wysoką dokładność detekcji, należy uwzględnić wielkość obszarów dla poszczególnych skal w odniesieniu do oryginalnego obrazu. Okazuje się, że najmniejszą powierzchnię ma obszar związany z najmniejszym współczynnikiem skali - na jego podstawie należy więc oprzeć przesunięcia obszaru poszukiwań. Porównanie skal przedstawia tabela \ref{tab:scale_window_cover}. %TODO też niejsane + \ref do tabeli
+
+Ponadto, analizując działanie algorytmu w pojedynczej skali, dla obszarów o rozmiarach $128\times 64$ oraz $144\times 96$  wyczerpującej analizie poddawanych jest jednorazowo jedynie $20\times 36$ pikseli. By przeanalizować wszystkie okna detekcji $128\times 64$, konieczne jest współdzielenie obszarów pikseli pomiędzy kolejnymi iteracjami algorytmu HOG+SVM. %TODO tego nie rozumiem %ODP opisano nieco więcej 
+%TODO może po prostu rysunek schematyczny do tego by wszystko dobrze wyjaśnił %ODP Średnio wiem, jak się tego podjąć żeby z miejsca tłumaczyło czemu jest tak a nie inaczej;)
+
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\begin{table}[h]
+	\centering
+	\captionsetup{justification=centering,margin=1cm}
+	\caption{Wielkość analizowanego obszaru HOG+SVM dla poszczególnych skal, w odniesieniu do oryginalnej wielkości obrazu}	
+	\begin{tabular}{|p{1cm} |P{4cm}| P{5cm}|}
+		
+		\hline
+		\rowcolor{lightgray} Skala & Rozmiar obszaru na oryginalnym obrazie & Uwagi \\ 
+		$1$	& $144\times 96$ 	& Skala nieużywana (referencja do poniższych wartości)\\ \hline 
+		\boldmath{$2$}	& \boldmath{$288\times 192$}	& Wymagane przesunięcia dla kolejnych iteracji: \boldmath{$40\times 72$}  	\\ \hline
+		$2.5$	& $360\times 240$ 	& \\ \hline 			
+		$3$	& $432\times 288$ 		& \\ \hline
+		$3.5$	& $504\times 336$	&   	\\ \hline
+		$4$	& $576\times 384$ 		& \\ \hline
+		
+	\end{tabular}
+
+	\label{tab:scale_window_cover}
+\end{table}
+%TODO ta tabela też niejasna jest... %ODP Poprawiono opis
+
+Pierwszy obszar detekcji jest zlokalizowany w lewym górnym rogu -- punkt centralny w $\{204,96\}$ -- i jest przemieszczany horyzontalnie o zadaną w tabeli wartość \ref{tab:scale_window_cover}. %TODO styl. obszar sam się nie porusza. %ODP OK
+Po zakończonej analizie obszaru znajdującego się przy prawej krawędzi ekranu, cały proces jest powtarzany z przesunięciem wertykalnym -- i tak do osiągnięcia podobnej odległości od dolnej krawędzi obrazu. %TODO styl. dotarcia %ODP OK
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=12cm]{6_scanning.jpg}
+	\caption{Proces skanowania - schemat przemieszczania okna detekcji na obrazie}
+	\label{fig:scan_scheme}
+\end{figure}
+Skanowanie obrazu $1280\times 720$ wymaga wykonania $7\cdot16=112$ iteracji algorytmu dla kolejnych nieparzystych klatek, co trwa nieco mniej niż 4 sekundy. %TODO rozdzielczość tradycyjnie podaje się 1280 x 720, styl. przejście %ODP tak, ale to się nijak ma do tego, że jeśli traktować to jako tablicę pikseli to najpierw jednak podaje się wiersze, potem kolumny.
+Proces ten może trwać krócej, jeśli w jego trakcie osiągnie się bardzo dobry wynik klasyfikacji, poniżej zadanego poziomu \textit{SVM\_strong\_threshold}=$-1$; w standardowej procedurze wystarczy zapamiętany najlepszy wynik poniżej \textit{SVM\_threshold}=$-0.1$. %TODO styl. kontroler natrafi %ODP OK
+
+\subsubsection{Weryfikacja pierwszej detekcji}
+Kolejny etap, weryfikacyjny, jest uruchamiany bezpośrednio po zakończeniu skanowania i polega na przeprowadzeniu 3 kolejnych iteracji SVM -- w trybie śledzenia (czyli na ograniczonym oknie, analizując obszar dla ostatniego wyniku SVM). %TODO podać/podkreślić, że już w ograniczonym oknie to się odbywa %ODP OK
+Warunkiem przejścia przez ten etap jest, by wynik każdej iteracji był mniejszy od założonego maksimum \textit{SVM\_threshold}. 
+W przeciwnym wypadku część PL przechodzi w stan bezczynności, ustawiana jest odpowiednia wartość statusu \textit{PL\_to\_PS\_status}, w odpowiedzi na którą część PS wyśle sygnał \textit{PS\_to\_PL\_run\_alg} rozpoczynający ponownie etap skanowania. Mechanizm ten stworzono, by kwestie decyzyjne związaną z dalszym postępowaniem przenieść do PS.
+
+%TODO wprowadziłbym podział na podrozdziały.
+%TODO a to czy to się powiodło/czy nie jest jakoś sygnalizowane ? %ODP Opisano wyżej
+\subsubsection{Śledzenie}
+Standardowe śledzenie opiera się na zweryfikowaniu wyniku ostatniej iteracji HOG+SVM, jednak proces uwzględnia jeszcze kilka elementów:
+\begin{itemize}
+	\item start algorytmu MeanShift -- wcześniej niedostępny algorytm MS ma możliwość rozpoczęcia pracy po zarejestrowaniu poprawnego wyniku klasyfikacji SVM (wartość mniejsza niż \textit{SVM\_strong\_threshold}). %TODO dobrego -> poprawnego %ODP OK
+	Wzorcem dla MS zostanie obszar z kolejnej klatki obrazu -- kwadrat o środku w $\{x,y-30\}$ -- gdzie $\{x,y\}$ to aktualny środek obszaru wyliczonego przez algorytm SVM. 
+	Podane przesunięcie w pionie pozwala rozpocząć śledzenie MS na obszarze w obrębie klatki piersiowej, wartość dobrano empirycznie.
+	
+	\item wyłączenie algorytmu MeanShift -- MS może przesunąć obszar śledzenia poza śledzony obiekt, na przykład w związku ze zmianą oświetlenia. %TODO słowo zbieżność chyba nie jest właściwe %ODP OK
+	By się przed tym ustrzec, konieczne jest wyłączenie algorytmu, by w stosownym momencie ponownie go uruchomić. 
+	Odpowiedni warunek sprawdza, czy punkt MeanShift nie jest zbyt oddalony od punktu zwracanego przez poprawnie działający algorytm SVM.
+	
+	\item utrata śledzonego obiektu -- jeśli wynik ostatniej klasyfikacji nie spełnia \textit{SVM\_threshold}, może to oznaczać potencjalną utratę śledzonej postaci z pola widzenia. 
+	Wówczas położenie osoby jest określane przez wynik działania algorytmu MeanShift, który stanowić będzie również wejście dla kolejnych iteracji HOG+SVM (poprawione o wspomniane wyżej przesunięcie $30$). %TODO inicjatywa przejmowana (styl), offstet -> przesunięcie %ODP OK
+	Warunkiem wyjścia z tego stanu (powrotu do standardowego śledzenia) jest osiągnięcie wyniku klasyfikacji rzędu \textit{SVM\_strong\_threshold}.
+	Istotnym ograniczeniem jest wartość \textit{SVM\_lost\_iter}, która określa ilość iteracji, w których ten tryb może pracować -- domyślnie są to ok. 3 sekundy (100 iteracji), jednak użytkownik może tę wartość modyfikować poprzez zapis do rejestru 0xC z poziomu konsoli. %TODO jakie rejestry ??%ODP Opisano nieco wyżej w tabelach
+	Skala w tym trybie nie jest aktualizowana -- zachowywana jest wartość z ostatnich poprawnych detekcji algorytmu HOG+SVM. %TODO to jest niejasne %ODP OK
+\end{itemize} 
+
+%TODO rozważyłbym też schamt tego
+
+Celem śledzenia jest utrzymanie obiektu w środku kadru. Sprowadza się to do ustalenia określonych wartości zadanych:
+\begin{itemize}
+	\item położenie punktu środkowego SVM: $\{x_{set},y_{set}\}=\{640,450\}$ 
+	\item odległość kamery od osoby: $4$m, co umożliwia pozytywną detekcję dla określonej skali obrazu: $z_{set}=3$ %TODO dlaczego tak %ODP Opisano niżej
+\end{itemize}
+Wartość $x_{set}$ jest dość oczywista i wyznacza dokładnie połowę szerokości kadru.
+Wartość $y_{set}$ została dobrana eksperymentalnie i jest związana potrzebą utrzymania odpowiedniej wysokości przez drona -- ok $1.5$m (zależnie od skali).
+Ostatecznie, dla skal użytych w projekcie: $2/2.5/3/3.5/4$, dobór $z_{set}=3$ jest najbardziej rozsądny ze względu szacowaną odległość postaci od drona -- $4$m -- oraz możliwość detekcji postaci w bliższej oraz dalszej odległości.
+
+Uchyb regulacji jest wyznaczany po każdej iteracji algorytmu SVM. 
+Opiera się na obliczeniu różnicy pomiędzy obecnymi koordynatami SVM, a ustalonymi wartościami zadanymi. %TODO jak wartością zadaną ? trzeba podać, że celem jest aby obiekt był w środku kadru %ODP uwzględniono to w tekście, ale jednak mamy do czynienia z wartościami zadanymi, od których odejmujemy aktualne wyniki - inaczej bym tego nie nazwał.
+Ponadto, w przypadku skali zdecydowano, by obliczana była średnia krocząca 4 ostatnich wyników poprzez ich zsumowanie, a następnie przesunięcie bitowe o 2 w prawo, równe dzieleniu przez 4.
+Taki zestaw danych jest co określoną liczbę iteracji (domyślnie 15, czyli $0.5$s) przepisywany do rejestru 0x04 do którego dostęp ma część PS. Flaga \textit{PL\_to\_PS\_control} ustawiana wówczas w sygnale GPIO wywołuje obsługę przerwania, skutkującego ruchem drona. Częstotliwość wysyłania takiego sygnału można konfigurować rejestrem \textit{SVM\_iter\_between\_control}.
+%TODO jak ta komunikacja jest realizowana. %ODP OK
+
+%TODO lepiej opisać ten temat, szczególnie te skala, bo to jest niejasne %ODP OK
+
+\subsection{Komunikacja FPGA<->autopilot} %TODO Zynq
+
+Wymiana informacji pomiędzy autopilotem a układem SoC bazuje na transmisji UART o standardowej prędkości równej 115200 bodów. 
+Za transmisję po stronie układu SoC jest odpowiedzialna część PS, jednak istnieje możliwość lokalizacji sygnałów RxD oraz TxD po stronie części PL (wybór spośród większej liczby pinów) \cite{PYNQ_sch}. 
+Z kolei na autopilocie skonfigurowano port TELEM 2 \cite{PixhawkSerial}. Warstwą transportową jest protokół MAVLink, który opisano w dodatku \ref{subsec:MAVLink}
+
+Został on zaprojektowany w postaci plików nagłówkowych -- taka forma umożliwia łatwe wykorzystanie w aplikacji tworzonej na jeden z rdzeni procesora ARM dostępnego na SoC Zynq. %TODO raczej na jeden z rdzeni. %ODP OK
+Ponadto, każda z dostępnych wiadomości ma swój podzbiór funkcji umożliwiających proste pakowanie w zestaw bajtów lub poprawne sparsowanie odebranych informacji.
+
+%TODO To by się przydało opisać w jakimś dodatku, a tu podać ref %ODP OK
+
+
+\subsubsection{Aplikacja uruchomiona na procesorze ARM układu SoC Zynq}
+
+O ile część PL układu Zynq jest tworzona w środowisku Xilinx Vivado, to narzędziem deweloperskim obsługującym PS jest inny program będący częścią pakietu firmy Xilinx -- SDK (Software Development Kit). %TODO styl. suity !!! -> pakietu %ODP OK
+By jednak możliwe było rozpoczęcie pracy, konieczne jest zaimportowanie z Vivado tzw. konfiguracji sprzętowej, czyli informacji o dostępnych w PS peryferiach, oraz połączeniach pomiędzy PS a PL.
+
+Jednym z nich jest GPIO, do którego podłączony został sygnał \textit{trigger\char`_algorithm}, status algorytmów oraz wartości uchybu regulacji. %TODO "wystawienie" %ODP OK
+Odpowiednio skonfigurowane GPIO może generować przerwania, co wykorzystano jako reakcję na zmianę stanu któregokolwiek z opisanych wyżej sygnałów.
+
+Pozostałymi peryferiami są dwa interfejsy UART. 
+Lokalizacją dla pierwszego interfejsu UART są dwa piny, które połączono z odpowiednim portem autopilota. 
+Aplikacja, korzystając z biblioteki MAVLink, jest w stanie zdekodować i sparsować ramki przychodzące oraz odpowiednio spakować komendy wysyłane do autopilota.
+
+Drugi interfejs UART, wyprowadzony domyślnie na wyjście microUSB płyty PYNQ, stanowi połączenie z komputerem jako element różnorakich testów i debugowania w trakcie implementacji. 
+Utworzono dla niego prostą formę terminala, który w odpowiedzi na komendy wpisywane z klawiatury komputera umożliwia zapis i odczyt z rejestrów testowych, wysyłanie określonych wiadomości do autopilota, ale przede wszystkim wyświetla odpowiednio sparsowane informacje wysyłane przez autopilot.
+
+W aplikacji zaimplementowano nadrzędną maszynę stanu, której częstotliwość pracy jest nadana przez odbierane co sekundę wiadomości z autopilota o ID=0, które noszą nazwę „HEARTBEAT”. %TODO "tempo pracy" %ODP OK
+Odpowiada ona za przygotowanie maszyny do śledzenia: uzbrojenie (komenda ARM), start (komenda TAKEOFF) i odczekanie określonego czasu przed rozpoczęciem skanowania. Wysłanie nowej komendy ruchu w trakcie etapu śledzenia jest realizowane niezależnie  podczas obsługi przerwania związanego z GPIO, po otrzymaniu sygnału \textit{PL\_to\_PS\_control}. Wykorzystywana jest w tym celu komenda SET\_POSITION\_TARGET\_LOCAL\_NED, której opis znajduje się w dodatku \ref{commands}. Warto zaznaczyć, że o ile oprogramowanie autopilota ArduCopter wyróżnia 14 trybów lotu drona, to trybem, który realizuje komendy ruchu wysyłane protokołem MAVLink, jest tryb GUIDED. Zostało to szerzej opisane w dodatku \ref{flightmodes}.
+%TODO to jest niejasne, bo nie ma opisu jak się tym dronem steruje... %ODP OK, opisano w dodatku
+
+Podstawowym warunkiem pracy maszyny stanu jest obecność sygnału \textit{trigger\char`_algorithm}. 
+Po jego zboczu narastającym następuje próba uzbrojenia drona; po zmianie stanu sygnału na niski (zmiana stanu przełącznika aparatury radiowej) procesor wyśle komendę rozpoczynającą proces lądowania. %TODO dlaczego lądowania. %ODP Bo założyłem, że jest to koniec misji.
+Bardziej szczegółowy opis komunikacji z dronem przedstawia schemat \ref{fig:PL_FSM_sch}.
+Ostatecznie, przesunięcia dla każdej osi są obliczane według wzorów:
+\begin{equation}
+\left.\begin{aligned}
+x_{mov}&= \frac{\boldmath{z_{set}}-z_{new}}{x_w}\\
+y_{mov}&= \frac{x_{new}-\boldmath{x_{set}}}{z_{new}\cdot y_w}\\
+z_{mov}&= \frac{y_{new}-\boldmath{y_{set}}}{z_{new}\cdot z_w},\\
+\end{aligned}\right.
+\end{equation}
+%TODO jakoś dla mnie te skale są niejasne. %ODP Opisano wyżej i tutaj
+gdzie: $y_{new}$, $x_{new}$, $z_{new}$ to informacje pochodzące z algorytmów MS/HOG+SVM, a \textit{$x_w$, $y_w$, $z_w$} są empirycznie dobranymi współczynnikami dopasowującymi wartości do jednostek. Nie bez znaczenia jest także skojarzona z wynikiem detekcji skala obrazu -- dla mniejszych skal (obiekt dalej od kamery) potrzebny jest większy ruch drona. Warto zwrócić uwagę na zmianę osi układu współrzędnych drona:
+\begin{itemize}
+	\item \textit{x} -- oś pozioma odpowiadająca kierunkowi ruchu samolotu (aspekt głębokości na obrazie),
+	\item \textit{y} -- oś pozioma prostopadła do osi \textit{x},
+	\item \textit{z} -- oś pionowa, zwrócona w dół.
+\end{itemize}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=16cm]{5_PS_FSM.jpg}
+	\caption{Schemat działania aplikacji w PS}
+	\label{fig:PL_FSM_sch}
+\end{figure}
+Domyślnie, maszyna stanu znajduje się w trybie bezczynności i oczekuje na pojawienie się sygnału \textit{trigger\char`_algorithm}. Wówczas podejmowana jest próba uzbrojenia z czasem oczekiwania 5 sekund. Autopilot wykonuje wtedy serię pomiarów weryfikacyjnych. Często ma jednak miejsce sytuacja, w której dron nie zostanie uzbrojony np. w wyniku niedokładnych pomiarów GPS. Jeśli proces ten się nie powiódł (informacja o stanie drona jest przesyłana z wiadomością HEARTBEAT), mija kolejne 30 sekund, i ponawiana jest próba uzbrojenia. W przeciwnym wypadku wysyłana jest komenda TAKEOFF z parametrem określającym docelową wysokość drona. Po kolejnych 10 sekundach dron potwierdza responsywność, obracając się o 30 stopni zgodnie z ruchem wskazówek zegara i po 3 sekundach rozpoczyna proces skanowania. PS jest informowane o stanie tego procesu poprzez sygnał \textit{PL\_to\_PS\_status} -- w oparciu o aktualizację jego wartości maszyna stanu wymusza obrót urządzenia i nowe skanowanie (brak detekcji,) powtórzenie skanowania dla obecnej orientacji (brak weryfikacji), lub przechodzi do trybu śledzenia. W maszynie stanu ten etap został on zrealizowany dość pasywnie, bowiem analizuje jedynie stan detekcji i w przypadku permanentnej utraty obiektu z pola widzenia następuje powrót do procedury skanowania. Za wydawanie komend ruchu odpowiada funkcja obsługi przerwania GPIO, która jest uruchamiana po każdej zmianie tego sygnału.
+%TODO Brak omówienia schematu
+
+%TODO a jakieś ograniczenia na ten ruch. min z max z maks zmiana ?
+
+\section{Podsumowanie stworzonej architektury}
+
+Ostatecznie architekturę programowo-sprzętową może przedstawić schemat \ref{fig:5_top_scheme}, opisujący najważniejsze zależności pomiędzy modułami. Zauważyć można podobieństwo sygnałów związanych z implementacją poszczególnych algorytmów - upraszcza to ich integrację w module TOP\_LAYER.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=16cm]{5_top_scheme.png}
+	\caption{Schemat architektury programowo-sprzętowej}
+	\label{fig:5_top_scheme}
+\end{figure}
+
+Proces implementacji sprzętowej szedł w parze z nadzorem wykorzystania zasobów w układzie. Nieodpowiednie zagospodarowanie dostępnymi w logice elementami mogłoby mieć wpływ na rozmieszczenie (routing) sygnałów i problemy związane z czasami ich ustalania lub podtrzymania (setup/hold time). Tabele \ref{tab:utilizationMS}, \ref{tab:utilizationHOG} oraz \ref{tab:utilizationOverall} przedstawiają wykorzystanie zasobów w układzie Zynq 7Z020.
+\begin{table}[ht]
+	\centering
+	\caption{Wykorzystanie zasobów dla implementacji algorytmu MeanShift}
 	\captionsetup{justification=centering,margin=1cm}
 	\begin{tabular}{|P{3cm} |P{3cm} |P{3cm}|P{4cm}|}	
 		\hline
 		\rowcolor{lightgray} Rodzaj zasobu & Wykorzystane & Dostępne & Wykorzystanie [\%]\\ 
-		LUT		& 4898	& 53200 & 9.2\\ 
+		LUT		& 5255	& 53200 & 9.8\\ 
 		\hline
-		FF		& 7921	& 106400 & 7.4\\ 
+		FF		& 8562	& 106400 & 8.0\\ 
 		\hline
 		BRAM	& 25.5	& 140 & 18.2\\ 
 		\hline
-		DSP		& 27	& 220 & 12.3\\ 
+		DSP		& 28	& 220 & 12.7\\ 
 		\hline		
 	\end{tabular}
-	\caption{Wykorzystanie zasobów dla zaimplementowanego algorytmu MeanShift}
+
 	\label{tab:utilizationMS}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[ht]
 	\centering
+	\caption{Wykorzystanie zasobów dla implementacji algorytmu HOG+SVM}
 	\captionsetup{justification=centering,margin=1cm}
 	\begin{tabular}{|P{3cm} |P{3cm} |P{3cm}|P{4cm}|}	
 		\hline
 		\rowcolor{lightgray} Rodzaj zasobu & Wykorzystane & Dostępne & Wykorzystanie [\%]\\ 
-		LUT		& 23879	& 53200 & 44.8\\ 
+		LUT		& 23894	& 53200 & 44.9\\ 
 		\hline
 		FF		& 32668	& 106400 & 30.7\\ 
 		\hline
@@ -680,27 +968,26 @@ Proces implementacji sprzętowej szedł w parze z nadzorem wykorzystania zasobó
 		DSP		& 55	& 220 & 25\\ 
 		\hline		
 	\end{tabular}
-	\caption{Wykorzystanie zasobów dla zaimplementowanego algorytmu HoG+SVM}
 	\label{tab:utilizationHOG}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[ht]
 	\centering
+	\caption{Wykorzystanie zasobów - pełna architektura}	
 	\captionsetup{justification=centering,margin=1cm}
 	\begin{tabular}{|P{3cm} |P{3cm} |P{3cm}|P{4cm}|}	
 		\hline
 		\rowcolor{lightgray} Rodzaj zasobu & Wykorzystane & Dostępne & Wykorzystanie [\%]\\ 
-		LUT		& 33710	& 53200 & 63.3\\ 
+		LUT		& 33729	& 53200 & 63.4\\ 
 		\hline
-		FF		& 46386	& 106400 & 43.6\\ 
+		FF		& 46385	& 106400 & 43.6\\ 
 		\hline
 		BRAM	& 92	& 140 & 65.7\\ 
 		\hline
 		DSP		& 83	& 220 & 37.7\\ 
 		\hline		
 	\end{tabular}
-	\caption{Wykorzystanie zasobów - pełna architektura}
 	\label{tab:utilizationOverall}
 \end{table} 
 
-Dodatkowo, postanowiono dokonać estymacji poboru mocy przez układ. W tym celu w środowisku Vivado wygenerowano raport w oparciu o określenie temperatury otoczenia równej $25^{\circ}$C i wybór najbardziej pesymistycznego poziomu estymacji. Z dokumentu wynika, że całkowity pobór mocy w układzie nie powinien przekraczać $3.5$W, z czego jednak aż $1.8$W to wartość przyporządkowana części PS. Fragment logiki realizujący metodę HoG+SVM potrzebuje $0.99$W, natomiast MeanShift zaledwie $0.1$W.
+Dodatkowo, postanowiono dokonać estymacji poboru mocy przez układ. W tym celu w środowisku Vivado wygenerowano raport w oparciu o określenie temperatury otoczenia równej $25^{\circ}$C i wybór najbardziej pesymistycznego poziomu estymacji. Z dokumentu wynika, że całkowity pobór mocy w układzie nie powinien przekraczać $3.5$W, z czego jednak aż $1.3$W to wartość przyporządkowana części PS. Fragment logiki realizujący metodę HOG+SVM potrzebuje $0.99$W, natomiast MeanShift zaledwie $0.11$W.

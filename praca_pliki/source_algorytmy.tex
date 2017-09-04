@@ -3,10 +3,30 @@
 \chapter{Śledzenie obiektów}
 \label{cha:sledzenieObiektow}
 
-%TODO Brakuje tu takiego rozdziału przedstawiającego koncepcję co Pan chce zrobić. Częściowo będzie to we wstępnie, ale raczej pobieżnie. Wydaje mi się, że dobrze by było w tym rozdziale opisać koncepcję systemu (rysunek), drona i potem przejść do omówienia poszczególnych komponentów.
-\section{Koncepcja systemu śledzącego}
-Projekt, którego celem jest śledzenie osoby na podstawie sygnału wideo, został stworzony na potrzeby bezzałogowego statku powietrznego. Oznacza to, że system, w skład którego wchodzi dron wyposażony w kamerę i niezależną jednostkę obliczeniową, powinien rozpoznać sylwetkę ludzką w swoim najbliższym otoczeniu i poruszać się za nią z utrzymaniem zadanej pozycji w przestrzeni. Za cel postawiono, by było nią centrum rejestrowanego obrazu, a odległość osoby do drona wynosiła ok. 4m (reprezentowana przez wielkość postaci na obrazie).
-Platofma, na której realizowany jest projekt, składa się z następujących elementów:
+Zadanie śledzenia obiektów jest zagadnieniem z dziedziny przetwarzania obrazów. Polega na zachowaniu ciągłości analizy ruchu obiektów i zapewnieniu ich obecności w polu widzenia kamery. W praktyce wyznacza się punkt na rejestrowanym obrazie (wartość zadaną) i steruje pozycją oraz orientacją kamery w taki sposób, by jego odległość od śledzonego obiektu (również reprezentowanego przez punkt) była jak najmniejsza. Systemy wizyjne tego typu znajdują zastosowanie m.in. w rozpoznawaniu zachowań ludzi, wykrywaniu kolizji z pieszymi (systemy ADAS), weryfikacji pracy urządzeń przemysłowych czy nawet śledzeniu pojazdów na polu walki.
+%TODO rozpoznawania zachowania twarzy dziwnie brzmi. Ogólnie lepsze przykłady. Z ADAS kolizja z pieszym, nawet wojskowe na polu walki śledzenie pojazdów. $ODP OK
+\section{Koncepcja systemu śledzenia obiektów}
+\label{sec:koncepcja}
+Realizacja projektu śledzenia obiektów dla potrzeb nawigacji bezzałogowego statku powietrznego dotyczy detekcji osoby w postawie stojącej. Wymagane było tu zdefiniowanie kilku założeń:
+\begin{itemize}
+	\item detekcja osoby znajdującej się jedynie w bezpośrednim otoczeniu drona, wewnątrz okręgu o promieniu do 7 metrów
+	\item śledzenie poprzez ruch całej platformy -- kamera jest nieruchoma, a jej pozycję dodatkowo stabilizuje gimbal kompensując wychylenia drona,
+	\item śledzenie w przestrzeni trójwymiarowej, z zadaną pozycją:
+	\begin{itemize}
+		\item przesunięcie względem osoby: $0$m, tj. osoba powinna znajdować się w centrum obrazu rejestrowanego przez kamerę
+		\item wysokość: około $1.5$m od ziemi
+		\item odległość: około $4$m od osoby
+	\end{itemize} 
+	\item automatyzacja misji - do zadań użytkownika należy jedynie wydanie rozkazu startu z ziemi i zakończenia pracy, skutkującego lądowaniem
+	\item możliwość awaryjnego przejęcia manualnej kontroli nad dronem
+	\item brak funkcjonalności, która zachowałoby ciągłość detekcji w przypadku pojawienia się drugiej osoby w otoczeniu głównego celu
+\end{itemize}
+
+%TODO Brakuje tu takiego rozdziału przedstawiającego koncepcję co Pan chce zrobić. Częściowo będzie to we wstępnie, ale raczej pobieżnie. Wydaje mi się, że dobrze by było w tym rozdziale opisać koncepcję systemu (rysunek), drona i potem przejść do omówienia poszczególnych komponentów. %ODP OK
+Dodatkowym warunkiem było oparcie prac na konstrukcji opisanej w kolejnych podrozdziałach.
+
+\subsection{Platforma UAV}
+Platforma, na której realizowany jest projekt, składa się z następujących elementów:
 \begin{itemize}
 	\item typ obiektu: hexacopter (rama DJI F550),
 	\item rodzaj śmigieł: wzmocnione śmigła o oznaczeniu 9050, czyli o średnicy śmigła równej $9.0"$ ($~22.86$cm) oraz skoku śmigła $5.0"$ ($~12.7$cm).,
@@ -18,15 +38,68 @@ Platofma, na której realizowany jest projekt, składa się z następujących el
 	\item odbiornik: FrSky X8D,
 	\item autopilot: 3DR Pixhawk.
 \end{itemize}
-Wybór komponentów i montaż platformy były częścią tej pracy i jako projekt SKN AVADER były dofinansowane ze środków Grantu Rektorskiego AGH 2015, oraz dodatkowo wydziału EAIiIB.
-%TODO do rozdziału 1
-%TODO napisać wprost, że wybór komponentów, montaż itp. były a) elementem tej pracy, b) też że projektem rektorskim SKN AVADER.
+
+Wybór komponentów, montaż platformy i jej kalibracja były częścią tej pracy i w ramach projektu SKN AVADER były dofinansowane ze środków Grantu Rektorskiego AGH 2015 oraz funduszy wydziału EAIiIB.
+%TODO do rozdziału 1 %ODP OK
+%TODO napisać wprost, że wybór komponentów, montaż itp. były a) elementem tej pracy, b) też że projektem rektorskim SKN AVADER. %ODP
+
+\subsection{Autopilot}
+
+Każdy dron byłby bezużyteczną konstrukcją, gdyby nie serce maszyny -- tzw. autopilot. 
+W tym przypadku postanowiono wykorzystać urządzenie Pixhawk. 
+Jest to zgodny ze standardami przemysłowymi moduł na otwartej licencji, stworzony przy współpracy z firmą 3D Robotics oraz ArduPilot Group. 
+Posiada następujące parametry:
+\begin{itemize}
+	\item procesor Cortex-M4F taktowany zegarem 168 MHz,
+	\item sensory: trzyosiowy akcelerometr, żyroskop, kompas magnetyczny, barometr i zewnętrzny GPS,
+	\item slot na kartę microSD,
+	\item możliwość połączenia peryferiów (interfejsy: UART, I2C, CAN),
+	\item 14 wyjść PWM (8 głównych z zabezpieczeniami + 6 dodatkowych).
+\end{itemize}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=8cm]{5_pixhawk.jpg}
+	\caption{Autopilot Pixhawk -- widok na panel główny oraz we/wy PWM}
+	\label{fig:pixhawk}
+\end{figure}
+
+Powyższy sprzęt jednak nie jest w pełni skonfigurowany do pracy po wyjęciu z pudełka -- szczególnie, że jako produkt uniwersalny, bywa montowany na konstrukcjach o szerokim rozrzucie parametrów. 
+Może zapewnić sterowanie śmigłowcom (tzw. multicopterom), samolotom modelarskim oraz nawet łazikom. %TODO mam wątpliwość, czy słowo "kopter" jest poprawne. Skoro helikopter jest niepoprawny (był taki słynny przetarg..) to trzeba śmigłowiec. %ODP OK, do nawiasu wrzucono potoczną nazwę.
+W przypadku dwóch pierwszych grup konfiguracja wiąże się ze zdefiniowaniem odpowiedniej liczby śmigieł i ich rozstawienia, typu aparatury radiowej oraz zewnętrznych urządzeń geolokalizacyjnych. 
+Tę dość dużą elastyczność mogą zapewnić dwa główne systemy, które są wczytywane z pamięci SD i pracują w czasie rzeczywistym. 
+Dedykowany, PX4 Flight Stack jest stworzony przez twórców modułu, oraz ArduPilot Copter (ArduCopter) -- niezależny, otwarty system, który został dostosowany do platformy Pixhawk z wykorzystaniem dostępnych narzędzi deweloperskich. 
+Ze względu na większą bazę użytkowników i dojrzałość projektu, wybrano drugie rozwiązanie.
+
+\subsection{Integracja urządzeń na platformie UAV} %TODO średni tytuł %ODP OK
+
+Zbudowanie drona w oparciu o gotowe komponenty nie jest zadaniem skomplikowanym. 
+Jednak z uwagi na wymagania projektu (opisane w \ref{sec:koncepcja}), należało dokładnie przemyśleć jego przebudowę. %TODO przerobić zdanie, że z uwagi na wymagania projektu - które powinny być opisane wcześniej. %ODP OK
+Schemat \ref{fig:architecture} przedstawia połączenia pomiędzy urządzeniami na platformie UAV.  %TODO arch. sygnałową - dziwne określenie %ODP OK 
+\begin{figure}[]
+	\centering
+	\includegraphics[width=15cm]{5_drone_architecture.png}
+	\caption{Relacje pomiędzy urządzeniami na platformie UAV}
+	\label{fig:architecture}
+\end{figure}
+Linie czerwone określają dystrybucję zasilania z zamontowanej baterii (pominięto konwertery napięcia), natomiast linie czarne opisują propagację sygnałów pomiędzy urządzeniami. Dodatkowo, liniami przerywanymi zaznaczono sygnały opcjonalne wykorzystywane w trakcie naziemnej analizy systemu. Porty szeregowe komputera służą do komunikacji z konsolą zaimplementowaną na układzie Zynq, oraz do konfiguracji autopilota poprzez aplikację MISSION Planner.
+
+Rysunek \ref{fig:drone_photo} przedstawia zdjęcie zmodyfikowanej, gotowej do lotu platformy.
+%TODO brakuje omówienia rysunku. Trzeba go po prostu opisać w tekście. %ODP OK
+\begin{figure}[h]
+	\centering
+	\captionsetup{justification=centering,margin=1cm}
+	\hspace*{0cm}
+	\includegraphics[width=14cm]{5_drone_photo.jpg}
+	\caption{Dron po niezbędnych modyfikacjach. Pod gąbką ochronną znajduje się układ PYNQ}
+	\label{fig:drone_photo}
+\end{figure}
+%TODO Brak referencji w txt. "skrywa" się potoczne. %ODP OK
+
+%TODO co to znaczy komputer w trakcie implementacji ? %ODP zamieniono linię na przerywaną (komputer jest opcjonalnie podłączany na ziemi w celu komunikacji z układami)
 
 
-Śledzenie polega na określeniu położenia określonego obiektu w kolejnych klatkach obrazu danego materiału wideo. %TODO powt. śledzenie obiektów %ODP OK
-Uzyskana w ten sposób informacja może pomóc m.in. w rozpoznawaniu zachowań ludzi, wykrywaniu kolizji z pieszymi (systemy ADAS), weryfikacji pracy urządzeń przemysłowych czy nawet śledzeniu pojazdów na polu walki. Niniejsza praca opisuje zastosowanie śledzenia obiektów w sterowaniu bezzałogowym statkiem powietrznym.
-%TODO rozpoznawania zachowania twarzy dziwnie brzmi. Ogólnie lepsze przykłady. Z ADAS kolizja z pieszym, nawet wojskowe na polu walki śledzenie pojazdów. $ODP OK
-
+%Generalnie nie mam pomysłu na to, gdzie wrzucić powyższe informacje związane z HW.
 %---------------------------------------------------------------------------
 
 \section{Rodzaje algorytmów śledzących}
@@ -51,7 +124,7 @@ Dodatkowo, jakikolwiek ruch kamery może zmieniać położenie obiektu i jego wi
 
 Jest to grupa metod, które działają w oparciu o obraz różnicowy, powstały w wyniku odjęcia bieżącego obrazu od poprzedniej klatki lub wcześniej wygenerowanego modelu tła. %TODO modelu tła $ODP OK
 Pozwala to na wyodrębnienie obszarów, gdzie nastąpiła zmiana, która zwykle związana jest z ruchem. %TODO, która zwykle związana jest z ruchem. $ODP OK
-W celu wyeliminowania szumu (minimalnych zmian w wartościach pikseli) stosuje się progowanie. 
+W celu wyeliminowania szumu (minimalnych zmian w wartościach pikseli) stosuje się progowanie \cite{Rosin}. 
 Uzyskuje się maskę binarną - piksele nieruchome (0) i ruchome (1). 
 Analizując taką informację, możliwe jest wyznaczenie nowego położenia obiektu i zdefiniowanie przesunięcia, które nastąpiło pomiędzy klatkami. 
 
@@ -59,7 +132,7 @@ Największą zaletą metod różnicowych jest ich prostota w zrozumieniu oraz im
 Z drugiej jednak strony, tak proste metody bywają zawodne w przypadku większych zakłóceń i ruchu w sąsiedztwie obiektu, błędnie interpretowanego jako właściwe przesunięcie. 
 Ponadto, zastosowania tych metod ograniczają się jedynie do obrazów rejestrowanych za pomocą kamery stacjonarnej, co eliminuje je z dalszych rozważań w tej pracy. 
 
-%TODO No dobra. A co jak będą dwa obiekty ? %ODP Pytanie o tę sekcję, czy ogólnie? Jeśli w moim projekciebędą dwie osoby, to algorytm wybierze "bardziej widoczną" i się jej będzie trzymał do czasu zasłonięcia jednej osoby drugą.
+%TODO No dobra. A co jak będą dwa obiekty ? %ODP Pytanie o tę sekcję, czy ogólnie? Jeśli w moim projekciebędą dwie osoby, to algorytm wybierze "bardziej widoczną" i się jej będzie trzymał do czasu zasłonięcia jednej osoby drugą, wtedy się pewnie wysypie.
 
 \subsection{Algorytmy częstotliwościowe}
 
@@ -82,31 +155,38 @@ Spośród wielu algorytmów gradientowych stosowanych do śledzenia obiektów, n
 Działanie tej grupy algorytmów polega na maksymalizacji funkcji korelacyjnej obliczanej na blokach pikseli. %TODO trochę powt. Działanie tej grupy algorytmów polega na maksymalizacji korealcji....%ODP OK
 Podstawowym założeniem jest jeden wspólny kierunek przemieszczenia wszystkich punktów obiektu - nie jest to zatem najlepsze rozwiązanie dla innych typów ruchu. %TODO styl. nie działają.%ODP OK
 Istotnym dla złożoności i wydajności parametrem przy implementacji tej grupy metod jest określenie rozmiaru obszaru poszukiwań -- w przypadku mniejszych, problemem bywa przemieszczenie obiektu poza obszar; w przypadku tych większych istnieje ryzyko znalezienia maksimum funkcji korelacyjnej, które nie odpowiada obiektowi. %TODO no i złożóność...%ODP poprawione
-Zaletą metod korelacyjnych jest jednak mniejsza wrażliwość na zachodzące na siebie obiekty, co umożliwia śledzenie bardziej złożonych ruchów %TODO to jest niejasne %ODP OK, sam teraz nie wiem o co mogło mi chodzić, a to przeoczyłem.
+Zaletą metod korelacyjnych jest jednak mniejsza wrażliwość na zachodzące na siebie obiekty, co umożliwia śledzenie bardziej złożonych ruchów %TODO to jest niejasne %ODP OK poprawione, sam teraz nie wiem o co mogło mi chodzić, a to przeoczyłem przy sprawdzaniu.
 Stosuje się je często, gdy obliczanie pochodnych (dla metod gradientowych) byłoby utrudnione -- przykładowo w przypadku gwałtownego ruchu obiektu lub niewystarczającej częstotliwości próbkowania sygnału wideo. %TODO ten klatkaż to potworek. czestotliwosci próbkowania sygnłaku wideo %ODP niby jest w używany przez filmowców, więc to już bardziej słownictwo zawodowe niż potoczne;) https://sjp.pwn.pl/poradnia/haslo/klatkaz;13832.html; ale zmieniłem
-Jedną z najbardziej popularnych metod korelacyjnych jest BMA, często używany w kompresji wideo \cite{Aroh}.
+Jedną z najbardziej popularnych metod korelacyjnych jest BMA, często używana w kompresji wideo \cite{Aroh}.
 
+\subsection{Algorytmy śledzenia przez detekcję}
+Działanie tej grupy algorytmów polega na niezależnym wykrywaniu określonych obiektów w kolejnych klatkach obrazu. Detekcja jest oparta na ekstrakcji kilku charakterystycznych cech obiektu, na przykład kształtu. W kolejnym etapie tak stworzony deskryptor jest klasyfikowany jako obiekt lub odrzucany. Istotną wadą tych metod śledzenia jest duża wrażliwość na zmianę odległości od obiektu -- rozwiązuje się ten problem poprzez analizę kilku przeskalowanych obrazów, jednak podnosi to ogólną złożoność obliczeniową ekstrakcji cech. Odrębną kwestią są parametry klasyfikatora, uzyskiwane w procesie uczenia i mocno wpływające na efekty działania tych metod.
+W skład tej grupy wchodzą m.in. algorytmy HOG, SIFT oraz SURF.
 %TODO Jeszcze brakuje Panu śledzenia przez detekcję - i do tego ten HOG wchodzi. Z popluarnych metod to jeszcze filtry cząsteczkowe, choć one chyba też umykają Pana klasyfikacji.
 %TODO kolejna kwestia to jednak wypadałoby powołać się na jakąś literaturę na podstawie, której Pan to opisał.
 
+\subsection{Algorytmy śledzenia wykorzystujące filtry cząsteczkowe}
+Idea działania tej grupy metod polega na przedstawieniu pozycji obiektu za pomocą zbioru losowych próbek (cząsteczek). Każda z nich związana jest z prawdopodobieństwem obecności obiektu w pozycji reprezentowanej przez tę cząsteczkę. Po otrzymaniu nowej klatki obrazu, cząsteczkom są przypisywane wagi na podstawie zgodności predykcji. Następnie odpowiednio cząsteczki z dobrym wynikiem są pomnażane, natomiast te o złych parametrach są usuwane z obliczeń.
+Wydajność tej grupy algorytmów w dużej mierze zależy od liczby zdefiniowanych cząsteczek, co może mocno wpłynąć na złożoność obliczeniową.
+%Nie wiem, czy mój opis jest do końca poprawny.
 \subsection{Podsumowanie}
 
-Ostatecznie w realizacji projektu postanowiono zaimplementować algorytm gradientowy: MeanShift i metodę śledzenia przez detekcję: HoG+SVM. %TODO HOG śledznie przez detekcję. Tzn. wiem, że tam korzysta się z gradientów, ale...%ODP OK
+Ostatecznie w realizacji projektu postanowiono zaimplementować algorytm gradientowy: MeanShift i metodę śledzenia przez detekcję: HOG+SVM. %TODO HOG śledznie przez detekcję. Tzn. wiem, że tam korzysta się z gradientów, ale...%ODP OK
 O takim wyborze zadecydowała możliwość wykorzystania obu rozwiązań dla obrazu pochodzącego z kamery ruchomej, co w przypadku pracy drona było decyzją naturalną. %TODO powt. algorytmów.%ODP OK
 Mimo, że MeanShift jest algorytmem iteracyjnym (kryterium zakończenia obliczeń stanowi limit iteracji bądź uzyskanie określonej dokładności), to odpowiednie zaprojektowanie modułu obliczeniowego w FPGA pozwoli przetwarzać obraz w czasie rzeczywistym, tj. ukończyć przetwarzanie aktualnej klatki przed rozpoczęciem przetwarzania kolejnej - tak szybko, jak tylko uzyska się na jej temat komplet informacji. %TODO dodać, że przy odpowiednim zaprojektowaniu modułu obliczeniowego%ODP OK
 Metoda ta charakteryzuje się dobrymi wynikami w przypadku obiektów zmieniających orientację -- jest to szczególnie przydatne w sytuacji, gdy miejscem umiejscowienia kamery jest dron -- maszyna podatna na podmuchy wiatru zmieniające chwilowo jej orientację względem obiektu. 
 
-Z kolei wsparcie algorytmem HoG/SVM będzie miało szczególne znaczenie w pierwotnej detekcji śledzonej postaci i późniejszym określaniu odległości kamery od celu. %TODO kompensowanie głębi- usunąć. Natomiast tą rolę trzeba opisać lepiej. Ale to i tak będzie miało sens tylko, jak wcześniej (zgodnie z sugestią) przecyzjie zostanie opisana koncepcja. Rola algorytmu HOG jest dwojaka. Odległość, ale też rozumiem inicjalizacja/re-inicjalizacja mean-shift (metody się uzupełniają) - no przynajmniej w teorii.
+Z kolei zastosowanie algorytmu HOG/SVM będzie miało szczególne znaczenie w pierwotnej detekcji śledzonej postaci. Ponadto, jednoczesna analiza kilku przeskalowanych obrazów na danym obszarze pozwoli wybrać najlepszy wynik i określić na tej podstawie odległość kamery od celu  %TODO kompensowanie głębi- usunąć. Natomiast tą rolę trzeba opisać lepiej. Ale to i tak będzie miało sens tylko, jak wcześniej (zgodnie z sugestią) przecyzjie zostanie opisana koncepcja. Rola algorytmu HOG jest dwojaka. Odległość, ale też rozumiem inicjalizacja/re-inicjalizacja mean-shift (metody się uzupełniają) - no przynajmniej w teorii. %ODP Opisano
 %Poprawność działania systemu wbudowanego będącego połączeniem obu algorytmów została potwierdzona testami, które zostały przeprowadzone na modelu programowym oraz na symulacjach kodu System Verilog. %TODO to zdanie to do innej cześci pracy. Tu na razie koncepcja. %ODP OK
 
-Oba algorytmy były wcześniej implementowane w układach rekonfigurowalnych w niezależnych projektach \cite{Mazur}, \cite{Drozdz}.
+Oba algorytmy były wcześniej implementowane w układach rekonfigurowalnych w niezależnych projektach \cite{Mazur},\cite{Patel}, \cite{Drozdz}.
 %TODO Można też dodać, że oba algorytmy były wcześniej implementowane w FPGA (literatura). %ODP OK
 
 \section{Algorytm MeanShift}
 
-MeanShift jest algorytmem zaprezentowanym po raz pierwszy w 1975 roku przez K. Fukunagę i L. Hostetlera \cite{Fukunaga}. Jest to metoda znajdowania maksimum rozkładu gęstości na pewnym ograniczonym obszarze. Iteracyjność algorytmu pozwala aktualizować położenie obszaru, przemieszczając go w kierunku maksimum i rozpoczynając ponownie analizę.
+MeanShift jest algorytmem zaprezentowanym po raz pierwszy w 1975 roku przez K. Fukunagę i L. Hostetlera \cite{Fukunaga}. Jest to metoda znajdowania maksimum rozkładu gęstości na pewnym ograniczonym obszarze. Iteracyjny charakter algorytmu pozwala aktualizować położenie obszaru, przemieszczając go w kierunku maksimum i rozpoczynając ponownie analizę.
 
-Z czasem stwierdzono, że MeanShift może znaleźć zastosowanie w systemach wizyjnych. Dla uprzednio zlokalizowanego na obrazie obszaru z obiektem należy przetworzyć go do postaci histogramu barw. W celu zapewnienia zbieżności histogram ten oblicza się w oparciu o postać jądra, którego wagi będą faworyzowały wartości pikseli w centrum obszaru. Pierwszy histogram pełni rolę wzorca, z którym porównywane będą histogramy obszarów z kolejnych klatek obrazu (kandydaci). Dzięki odpowiedno zastosowanym wagom algorytm znajduje maksimum rozkładu gęstości (podobieństwa) i przemieszcza obszar w jego kierunku, by na nowym zestawie pikseli rozpatrzyć kolejnego kandydata.
+Z czasem stwierdzono, że MeanShift może znaleźć zastosowanie w systemach wizyjnych. Dla uprzednio zlokalizowanego na obrazie obszaru z obiektem należy zapisać go w postaci histogramu barw. W celu zapewnienia zbieżności histogram ten oblicza się w oparciu o postać jądra, którego wagi będą faworyzowały wartości pikseli w centrum obszaru. Pierwszy histogram pełni rolę wzorca, z którym porównywane są histogramy obszarów z kolejnych klatek obrazu (kandydaci). Dzięki odpowiedno zastosowanym wagom algorytm znajduje maksimum rozkładu gęstości (podobieństwa) i przemieszcza obszar w jego kierunku, by na nowym zestawie pikseli rozpatrzyć kolejnego kandydata.
 %TODO TU by się przydało jakieś wprowadzanie i podanie źródła z literatury. %ODP OK
 
 \subsection{Konwersja przestrzeni barw RGB->HSV}
@@ -119,7 +199,7 @@ Jest to składowa H z przestrzeni barw HSV (ang. \textit{Hue, Saturation, Value}
 Domyślną przestrzenią do rejestracji i zapisu obrazów jest jednak RGB, zatem wymagana jest jej konwersja. 
 O ile przestrzeń RGB reprezentowana jest przez sześcian określony parametrami 3 kolorów: czerwonego, zielonego i niebieskiego, to przestrzeń barw HSV opisywana jest przez stożek. 
 Jego podstawą jest koło, którego kąt opisuje barwę (H -- \textit{Hue}). %TODO to jest barwa, kat opisuje barwę %ODP OK
-Kolor czerwony jest reprezentowany przez kąty 0\si{\degree} (lub 360\si{\degree}), zielony przez kąt 120\si{\degree}, a kolor niebieski przez 240\si{\degree}. 
+Kolor czerwony jest reprezentowany przez kąty $0$\si{\degree} (lub $360$\si{\degree}), zielony przez kąt $120$\si{\degree}, a kolor niebieski przez $240$\si{\degree}. 
 Promień koła barw opisuje nasycenie koloru (S -- \textit{Saturation}), zaś za moc światła białego, czyli jasność (V -- \textit{Value}) odpowiada wysokość stożka. 
 Model HSV jest lepiej powiązany ze sposobem, w jaki postrzega ludzki narząd wzroku, dla którego wszystkie barwy są światłem odbitym od obiektów.
 Rysunek \ref{fig:HSV_cone} przedstawia interpretację graficzną składowych przestrzeni HSV na stożku.
@@ -131,7 +211,7 @@ Rysunek \ref{fig:HSV_cone} przedstawia interpretację graficzną składowych prz
 	\label{fig:HSV_cone}
 \end{figure}
 
-Poniższe wzory opisują sposób wyznaczenia poszczególnych składowych przestrzeni HSV w oparciu o RGB. Wymagają one kilku względnie złożonych operacji dzielenia.
+Poniższe wzory opisują sposób wyznaczenia poszczególnych składowych przestrzeni HSV w oparciu o RGB \cite{Kryjak}. Wymagają one kilku względnie złożonych operacji dzielenia.
 
 \begin{equation}
 \label{HSV_first}
@@ -252,7 +332,7 @@ M_s(P)=\frac{\sum_{i=1}^{n}\sum_{j=1}^{n}P'(i,j)g(||P-P'(i,j)||)}{\sum_{i=1}^{n}
 
 Zastosowanie algorytmu MeanShift do śledzenia obiektów na materiale
 wideo wymaga znalezienia zależności pomiędzy funkcjami gęstości wzorca oraz kandydata. 
-W tym celu należy zestawić ze sobą oba rozkłady na przykład za pomocą współczynnika Bhattacharyya, który dla $m$-wymiarowych funkcji gęstości wzorca $q_h$ oraz obszaru-kandydata $p_h$ ze środkiem w punkcie $P$ wyraża się wzorem:
+W tym celu należy zestawić ze sobą oba rozkłady na przykład za pomocą współczynnika Bhattacharyya, który dla $m$-wymiarowych funkcji gęstości wzorca $q_h$ oraz obszaru-kandydata $p_h$ ze środkiem w punkcie $P$ wyraża się wzorem \cite{Comaniciu}:
 \begin{equation}
 \label{eq:Bhat}
 \rho(P)=\sum_{h=1}^{m}\sqrt{p_h(P)q_h}
@@ -265,7 +345,7 @@ Opisane wyżej jądro i jego gradient stanowią inicjalizację całego algorytmu
 Cechą obrazu, dla której będzie liczona funkcja prawdopodobieństwa, jest kolor (H z przestrzeni barw HSV, jest to liczba z zakresu 0-359). 
 Jeśli położenie piksela na obrazie wzorca oznaczone jest jako $\{x_{i},y_{j}\}_{i=1..n,i=j..n}$, niech zdefiniowana będzie funkcja $b:\mathbb{R}^2\rightarrow\{1..m\}$, która odwoływać się będzie do składowej \textit{H} danego piksela.
 
-Barwa piksela stanowi argument funkcji prawdopodobieństwa utworzonego dla \textit{H} na danym obszarze detekcji. %TODO przede wszystkim ? %ODP OK
+Barwa piksela stanowi argument funkcji prawdopodobieństwa utworzonego dla \textit{H} na danym obszarze detekcji. %TODO przede wszystkim ? %ODP OK, wykasowano
 Współczynnik Bhattacharyya jest \textit{de facto} porównaniem dwóch funkcji prawdopodobieństwa (wzorca i kandydata), każdej będącej histogramem o 360 przedziałach. %TODO wymiar cech to średnio brzmi %ODP OK
 Podczas obliczania prawdopodobieństwa wystąpienia określonego koloru, istotną rolę odgrywać musi wartość jądra, które zwiększa wagę pikseli znajdujących się w centrum obszaru, marginalizując znaczenie tych brzegowych -- które mogłyby być częścią zmiennego w czasie tła. 
 O ile w tradycyjnym histogramie wartości przedziałów zwiększa się poprzez inkrementację, to w tym przypadku zdecydowano się na powiększenie o wartość jądra odpowiadającego położeniu piksela na obszarze 100x100.
@@ -349,10 +429,10 @@ Pierwotnie, rozwiązanie to zostało przedstawione w pracy \cite{Dalal} z zastos
 Metodykę klasyfikacji w oparciu o zestaw cech można również zastosować do detekcji innych obiektów - w szczególności takich, które charakteryzują się dość unikalnym układem krawędzi.
 %Oczywiście należy dodać, że dysponując odpowiednim zestawem informacji, odpowiednio trenowany mechanizm SVM byłby w stanie działać z innymi obiektami. %TODO to też takie sobie. Raczej, że podejście można też zastosować do detekcji innych obiektów, w szczególności takich, które charakteryzują się względnie unikalnym układem krawędzi. %ODP OK
 
-Założeniem metody HOG+SVM jest przedstawienie okna detekcji w formie tzw. deskryptora (wektora cech), który pozwoli przeprowadzić proces uczenia klasyfikatora na podstawie dostępnych próbek w sposób umożliwiający skuteczną klasyfikację nowych obrazów. W tym celu okno detekcji dzielone jest na mniejsze, jednakowej wielkości obszary (komórki). Dla każdego z pikseli wewnątrz okna obliczana jest wartość gradientu, jego orientacja i moduł, po czym piksele przydzielone do jednej komórki tworzą histogram zorientowanych gradientów. Okno detekcji jest następnie reorganizowane w formę przesuwnych bloków składających się z 4 komórek (histogramów), które po normalizacji są łączone w postać wektora cech.\newline
-Wykorzystanie maszyny wektorów nośnych w uczeniu polega na wyznaczeniu hiperpłaszczyzny, która rozdzieli deskryptory należące do dwóch klas z maksymalnym marginesem. Klasyfikacja jest etapem prostszym, podczas którego obliczana jest pozycja badanego deskryptora względem hiperpłaszczyzny (określana jest jego klasa).
+Założeniem metody HOG+SVM jest przedstawienie okna detekcji w formie tzw. deskryptora (wektora cech), który pozwoli przeprowadzić proces uczenia klasyfikatora na podstawie dostępnych próbek w sposób umożliwiający skuteczną klasyfikację nowych obrazów. W tym celu okno detekcji dzielone jest na mniejsze, jednakowej wielkości obszary (komórki). Dla każdego z pikseli wewnątrz okna obliczana jest wartość gradientu, jego orientacja i moduł, po czym piksele przydzielone do jednej komórki tworzą histogram zorientowanych gradientów. Okno detekcji jest następnie reorganizowane w formę bloków składających się z współdzielonych pomiędzy sobą 4 komórek (histogramów). Każdy z bloków jest niezależnie normalizowany, po czym wszystkie są łączone w postać wektora cech.\newline
+Uczenie maszyny wektorów nośnych polega na wyznaczeniu hiperpłaszczyzny, która rozdzieli deskryptory należące do dwóch klas z maksymalnym marginesem. Klasyfikacja jest etapem prostszym, podczas którego obliczana jest pozycja badanego wektora cech względem hiperpłaszczyzny (określana jest jego klasa).
 
-%TODO Tutaj też jakieś kilka zdań ogólnych i później omówinie konkrentych etapów.
+%TODO Tutaj też jakieś kilka zdań ogólnych i później omówinie konkrentych etapów. %ODP OK
 
 \subsection{Konwersja RGB->GRAY i obliczenie orientacji} %TODO Obliczenie orientacji %ODP OK
 \label{sec:HOGgrad}
@@ -473,7 +553,7 @@ Obsługa tak dużej ilości danych niesie za sobą konieczność pewnych optymal
 
 \subsection{Klasyfikator SVM}
 
-Maszyna wektorów nośnych to klasyfikator binarny, który dzięki swej prostocie i skuteczności jest powszechnie wykorzystywany w procesie odróżniania klas w różnych aplikacjach, w tym wizyjnch. %TODO w różnych aplikacjach, w tym wizyjnch. %ODP OK
+Maszyna wektorów nośnych to klasyfikator binarny, który dzięki swej prostocie i skuteczności jest powszechnie wykorzystywany w procesie odróżniania klas w różnych aplikacjach, w tym wizyjnch \cite{Gunn}. %TODO w różnych aplikacjach, w tym wizyjnch. %ODP OK
 Jego działanie tradycyjnie można podzielić na dwie fazy: uczenie i klasyfikację. 
 Etap uczenia to relatywnie dłuższy czasowo proces wyznaczenia hiperpłaszczyzny, która z jak najlepszym marginesem rozdzieli wejściowe wektory cech obiektów klasyfikowanych jako \textit{1} od tych określonych jako \textit{0} (umownie). 
 Stosowane podeście nie powinno odbiegać od klasycznej metodologii uczenia maszynowego -- dysponując zbiorem danych wejściowych, należy dokonać podziału na próbki uczące oraz testowe (w stosunku około 70:30). %TODO trenujące -> uczące %ODP OK
@@ -538,9 +618,9 @@ Dla obu przypadków, detekcja wskazuje obiekt jako przynależący klasy jeśli $
 Klasyfikator jest w stanie rozpoznać postać znajdującą się w centrum próbki o rozmiarze $128\times 64$. 
 %TODO druga część zdania niejasne %ODP OK, określono w pierwszej części zdania
 
-Osiągnięcie dobrych wyników detekcji wymaga zastosowania mechanizmu okna przesuwnego. Dysponując określonym obszarem zainteresowań, algorytm powinien sprawdzić każdą możliwą konfigurację położenia okna $128\times 64$ wewnątrz tego obszaru. Oznacza to przesuwanie okna o 1 piksel w bok, a po dotarciu do prawej linii o 1 piksel w dół. Takie podejście skutkuje bardzo dużą złożonością obliczeniową - dla obszaru zainteresowań o wymiarach $144\times 96$ i rozpatrywanego okna istnieje 512 możliwości. W praktyce zwiększa się wykonywany krok o kilka lub kilkanaście pikseli.
+Osiągnięcie dobrych wyników detekcji wymaga zastosowania mechanizmu okna przesuwnego. Dysponując określonym obszarem zainteresowań, algorytm powinien sprawdzić każdą możliwą konfigurację położenia okna $128\times 64$ wewnątrz tego obszaru. Oznaczać to przesuwanie okna o 1 piksel w bok, a po dotarciu do prawej linii o 1 piksel w dół. Takie podejście skutkuje bardzo dużą złożonością obliczeniową - dla obszaru zainteresowań o wymiarach $144\times 96$ i rozpatrywanego okna istnieje 512 możliwości (512 wektorów cech). W praktyce zwiększa się wykonywany krok o kilka lub kilkanaście pikseli.
 
-Metoda HOG+SVM jest mało odporna na zmianę wielkości wykrywanego obiektu na oryginalnym obrazie, a porównując wymiary ramki ($720 \times 1280$) z wielkością okna detekcji, może wydawać się to poważnym ograniczeniem. Skutecznym rozwiązaniem okazuje się być zastosowanie algorytmu HOG+SVM na kilku przeskalowanych w różny sposób kopiach obrazu. Z każdej skali należy wydobyć próbki obrazów o wymiarach $128\times 64$ i znaleźć najlepszą pozytywną detekcję. Odpowiadająca wybranemu wynikowi skala da pośrednią informację o odległości. 
+Metoda HOG+SVM jest mało odporna na zmianę wielkości wykrywanego obiektu na oryginalnym obrazie, a porównując wymiary ramki ($1280\times 720$) z wielkością okna detekcji, może wydawać się to poważnym ograniczeniem. Skutecznym rozwiązaniem okazuje się być zastosowanie algorytmu HOG+SVM na kilku przeskalowanych w różny sposób kopiach obrazu. Z każdej skali należy wydobyć próbki obrazów o wymiarach $128\times 64$ i znaleźć najlepszą pozytywną detekcję. Odpowiadająca wybranemu wynikowi skala da również pośrednią informację o odległości. 
 
 Metodyka detekcji w wielu skala stanowi dobrą odpowiedź na jedno z założeń systemu, mówiące o konieczności określenia odległości kamery od rozpoznanej osoby, by poprzez odpowiednie sterowanie utrzymać zadany dystans.  %TODO z tym kierunkiem ? -> niejasne %ODP OK
 

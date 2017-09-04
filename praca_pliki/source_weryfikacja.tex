@@ -41,12 +41,6 @@ Stworzona konfiguracja testowa jest przedstawiona na schemacie \ref{fig:testing_
 \end{figure}
 
 Test polega na skanowaniu ruchomego obrazu w poszukiwaniu postaci, a następnie śledzeniu znalezionej osoby. Analiza jest rozpoczynana w lewym górnym rogu, po czym sukcesywnie przechodzi w linii poziomej do prawej krawędzi, co jest następnie powtarzane dla niższych pozycji \ref{fig:scan_scheme} %TODO 'ref %ODP OK
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=12cm]{6_scanning.jpg}
-	\caption{Proces skanowania - schemat przemieszczania okna detekcji na obrazie}
-	\label{fig:scan_scheme}
-\end{figure}
 Na przykładowych zrzutach z materiału wideo \ref{fig:scan_screenshot} zaprezentowano proces skanowania obrazu. 
 Niebieskimi prostokątami oznaczone są aktualne okna detekcji dla poszczególnych skal. 
 Zielone okno to obszar śledzenia algorytmem MeanShift, natomiast czerwonym kolorem oznaczono aktualnie najlepsze okno $128 \times 64$ (przeskalowane ponownie do oryginalnej rozdzielczości).
@@ -79,7 +73,7 @@ Zielone okno to obszar śledzenia algorytmem MeanShift, natomiast czerwonym kolo
 	\label{fig:track_1}
 \end{figure}
 
- Przebieg testu powinien być jak najbardziej zbliżony do pracy układu podczas lotu, z tego względu do procedury dodano komunikację UART z autopilotem. Nadzór nad nią jest sprawowany poprzez dodatkowe połączenie szeregowe łączące układ Zynq z komputerem, który wyświetla na terminalu wszystkie istotne komunikaty. Przykładowo, raport \ref{tab:log} przedstawia informacje uzyskane w ciągu pierwszych kilkunastu sekund jednego z testów. Po otrzymaniu sygnału startu (przełącznik na układzie PYNQ lub na aparaturze radiowej) do autopilota wysyłana jest komenda uzbrojenia (ARM) i startu (TAKEOFF), jednak ze względu na obecność drona w budynku niemożliwe jest określenie pozycji poprzez GPS - odesłana wiadomość COMMAND ACK informuje, że wykonanie komendy TAKEOFF (ID: 22) się nie powiodło (status: 4). Podczas testu ten komunikat jest jednak ignorowany, i rozpoczyna się skanowanie. Po dłuższej chwili detekcja kończy się sukcesem i system rozpoczyna zadanie śledzenia. Od tego momentu większość komunikatów dotyczy informacji z PL o odległości śledzonego obiektu od wartości zadanej i skali -- przemnożonej przez 10 z powodu braku funkcji wyświetlającej liczby zmiennoprzecinkowe. Niezależnie od przebiegu pracy systemu wizyjnego mogą pojawiać się wiadomości z autopilota o statusie (INFO) i zmianach parametrów (PARAM VAL). Test jest kończony przez użytkownika poprzez wycofanie sygnału startu - poza zakończeniem pracy algorytmu wysyłana jest wówczas komenda lądowania (LAND).
+ Przebieg testu powinien być jak najbardziej zbliżony do pracy układu podczas lotu, z tego względu do procedury dodano komunikację UART z autopilotem. Nadzór nad nią jest sprawowany poprzez dodatkowe połączenie szeregowe łączące układ Zynq z komputerem, który wyświetla na terminalu wszystkie istotne komunikaty. Przykładowo, raport \ref{tab:log} przedstawia informacje uzyskane w ciągu pierwszych kilkunastu sekund jednego z testów. Po otrzymaniu sygnału startu (przełącznik na układzie PYNQ lub na aparaturze radiowej) do autopilota wysyłana jest komenda uzbrojenia (ARM) i startu (TAKEOFF), jednak ze względu na obecność drona w budynku niemożliwe jest określenie pozycji poprzez GPS - odesłana wiadomość COMMAND ACK informuje, że wykonanie komendy TAKEOFF (ID: 22) się nie powiodło (status: 4). Podczas testu ten komunikat jest jednak ignorowany, i rozpoczynane jest skanowanie. Po dłuższej chwili otrzymywany jest komunikat o pozytywnym wyniku detekcji, po czym system rozpoczyna zadanie śledzenia. Od tego momentu większość komunikatów dotyczy informacji z PL o odległości śledzonego obiektu od wartości zadanej i skali -- przemnożonej przez 10 z powodu braku funkcji wyświetlającej liczby zmiennoprzecinkowe. Niezależnie od przebiegu pracy systemu wizyjnego mogą pojawiać się wiadomości z autopilota o statusie (INFO) i zmianach parametrów (PARAM VAL). Test jest kończony przez użytkownika poprzez wycofanie sygnału startu - poza zakończeniem pracy algorytmu wysyłana jest wówczas komenda lądowania (LAND).
  
 %TODO \ref do tabeli. %ODP OK
 %TODO jakieś jednak omówienie. %ODP OK, dodano wyżej
