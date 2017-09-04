@@ -118,7 +118,7 @@ Kanał 6 jest przypisany do potencjometru S1 i został skonfigurowany jako sygna
 Ważne: ze względu na podłączony do kamery przewód HDMI regulacja nachylenia nie działa poprawnie -- w projekcie zasilanie silnika odpowiedzialnego za nachylenie kamery nie jest podłączone.
 %może jakaś kalibracja żyroskopów gimbala jest w stanie pomóc, na pewno przydałby się bardziej giętki kabel
 
-Kanał 7 przypisano do 3-pozycyjnego przełącznika SC. Sygnał PWM z informacją z tego kanału jest wysyłany przez autopilot do układu rekonfigurowalnego i służy do zdalnej inicjalizacji misji śledzenia.
+Kanał 7 przypisano do 3-pozycyjnego przełącznika SC. Sygnał PWM z informacją z tego kanału jest wysyłany przez autopilot do układu rekonfigurowalnego i służy do zdalnego rozpoczęcia misji śledzenia.
 
 
 \section{Instrukcja powtórzenia eksperymentu śledzenia}
@@ -128,14 +128,14 @@ Kanał 7 przypisano do 3-pozycyjnego przełącznika SC. Sygnał PWM z informacj�
 	\item Podłączyć pakiet LiPo
 	\item Włączyć zasilanie płyty PYNQ
 	\begin{itemize}
-		\item jeśli układ Zynq nie jest konfigurowany z karty SD, należy skonfigurować go poprzez port JTAG
+		\item jeśli układ Zynq nie jest konfigurowany z karty SD, należy skonfigurować go poprzez port USB-JTAG
 	\end{itemize}	
 	\item Włączyć kamerę i upewnić się, że jest w trybie rejestracji wideo
 	\item Podłączyć autopilot do komputera (kabel USB) i w aplikacji MISSION Planner sprawdzić podstawowe informacje -- obecność sygnału GPS i innych czujników, zwracane błędy. Zamknąć połączenie i odłączyć kabel
-	\item Upewnić się, że nie ma przewodów lub elementów mogących stanowić zagrożenie przy pracy śmigieł
+	\item Upewnić się, że nie ma przewodów lub elementów mogących stanowić zagrożenie podczas pracy silników
 	\item Włączyć aparaturę radiową i za pomocą przełączników SA oraz SB wybrać tryb GUIDED
 	\item Ustawić przełącznik SC w pozycji górnej -- wysłać sygnał rozpoczynający misję 
-	\item Oczekiwać na osiągnięcie stałej wysokości przez drona przy zachowaniu pozycji stojącej i odległości kilku metrów od drona
+	\item Oczekiwać na osiągnięcie stałej wysokości przez drona przy zachowaniu pozycji stojącej i odległości kilku metrów od platformy
 	\item Po ruchu drona wskazującym na rozpoczęcie śledzenia, można zmienić swoje położenie i obserwować działanie systemu 
 	\item Wyłączyć misję ustawieniem przełącznika SC w pozycji środkowej lub dolnej -- rozpocznie się lądowanie 
 \end{itemize}

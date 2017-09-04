@@ -1,21 +1,22 @@
 \chapter{Podsumowanie i możliwości rozwoju pracy}
 
 W zrealizowanym projekcie przedstawiono sprzętową-programową realizację detekcji i śledzenia osoby w heterogenicznym układzie Zynq SoC, na potrzeby kontroli bezzałogowego statku powietrznego. 
-Osiągnięto przetwarzanie obrazu o rozdzielczości $1280\times 720$ dla 60 klatek na sekundę, z prędkością \textit{60Hz} i \textit{30Hz} odpowiednio dla algorytmów MeanShift oraz HoG+SVM.
+Osiągnięto przetwarzanie obrazu o rozdzielczości $1280\times 720$ dla 60 klatek na sekundę, z częstotliwością \textit{60Hz} i \textit{30Hz} odpowiednio dla algorytmów MeanShift oraz HoG+SVM.
 
 Na szczególną uwagę zasługuje warstwa najwyższa, łącząca pracę obu algorytmów i komunikująca się z autopilotem Pixhawk. Zaimplementowano w niej mechanizmy realizujące ważną z punktu widzenia autonomizacji rolę decyzyjną, a wykorzystanie protokołu MAVLink zapewniło komunikację umożliwiającą ruch platfomy UAV bez udziału pilota i ograniczyło zaangażowanie użytkownika do włączenia misji i jej zakończenia.
 
 Zastosowany w pracu układ Zynq SoC okazał się być wydajną jednostką obliczeniową, która jest w stanie sprostać wymagającym założeniom projektu, a jej zróżnicowana architektura w postaci części PS oraz PL pozwala w najlepszy sposób wykorzystać korzyści związane z realizacją sprzętową i programową algorytmów.
+
 Niemniej ważny okazał się dobór komponentów do budowy drona. Był on przedmiotem wielu analiz (również finansowych), a w efekcie otrzymano wartościową konstrukcję, stanowiącą platformę dla przyszłych badań w SKN AVADER.
 
 %Protokół MAVLink oraz oprogramowanie ArduCopter stanowią dowód na to, że niekomercyjne projekty są zaskakująco dobrą alternatywą dla rozwiązań płatnych.
 
-%TODO jeszcze o budowie. Ogólnie nieco obszerniej by to można opisać.
+%TODO jeszcze o budowie. Ogólnie nieco obszerniej by to można opisać. %ODP OK
 
 %Autor uważa jednak, że bazując na testowanej konfiguracji sprzętowo-programowej można dokonać szeregu usprawnień, podnoszących ogólną niezawodność rozwiązania. %TODO to jednak tu nie pasuje %ODP OK
 
 Z projektem związanych jest kilka aspektów, których rozpatrzenie mogłyby wpłynąć na poprawienie niezawodności systemu. Jednym z nich mogłaby być próba zredukowania liczby fałszywych detekcji (HoG+SVM) poprzez zmianę wielkości bloków lub komórek. %TODO no właśnie, jakoś Pan to testował ? Bo chyba tego tam nie ma. %ODP testowałem w modelu programowym
-Innym pomysłem mogłoby być proste zwiększenie liczby analizowanych skal. %TODO liczby ? %ODP OK
+Innym pomysłem mogłoby być proste zwiększenie liczby analizowanych skal. Ostatnim, równie ważnym, mogłoby być udoskonalenie procedury uczenia klasyfikatora.%TODO liczby ? %ODP OK
 Kolejnym usprawnieniem, związanym z algorytmem MeanShift, byłoby zlikwidowanie rzadkich sytuacji utraty zbieżności ze śledzonym obszarem -- co skutkuje „wędrowaniem okna”. Najczęściej ma na to wpływ nierównomierny i zmienny poziom oświetlenia sceny, co można byłoby korygować wstępnym przetwarzaniem. %TODO wie Pan dlaczego ? %ODP OK
 Barierą na drodze większości zmian jest liczba dostępnych zasobów w układzie -- wymagana byłaby zmiana układu na dysponujący zwłaszcza większą liczbą bloków BRAM. 
 Istnieją jednak zmiany niewymagające ingerencji w kod. 
@@ -23,7 +24,7 @@ Do podstawowych należałby lepszy dobór ustawień programowych kamery w celu p
 Kolejną mogłaby być lepsza stabilizacja obrazu - ze względu na podpięty do kamery dość sztywny przewód HDMI zmienia się jej środek ciężkości, co zaburza pracę gimbala - silnik związany ze stabilizacją na jednej osi obrotu musiał być z tego powodu wyłączony. %TODO szczegóły %ODP OK
 Ostatnią zmianą, mającą największy wpływ na śledzenie, byłoby poprawienie właściwości lotnych drona. Mowa tu głównie o problemach z płynnością ruchu oraz utrzymywaniem drona w zadanej pozycji - co może mieć związek z ustawieniami akceleratorów,  dokładnością pomiaru sygnału GPS lub nawet zakłóceniami spowodowanymi niewystarczającą izolacją przewodów prądowych zasilających silniki.%TODO j.w. %ODP OK
 
-Wykorzystanie układu rekonfigurowalnego na platformie UAV pozwala stworzyć ciekawe, a przy tym wartościowe naukowo projekty systemów wizyjnych lub bezpośrednio związanych z autonomizacją dronów.
+Wykorzystanie układu rekonfigurowalnego na platformie UAV pozwala stworzyć ciekawe, a przy tym wartościowe naukowo projekty systemów wizyjnych lub systemów w inny sposób związanych z autonomizacją dronów.
 Podstawowym kierunkiem dla nowo tworzonych systemów mogłaby być zdolność omijania przeszkód (nadal kosztowna opcja w dronach komercyjnych). Detekcja mogłaby być realizowana przez specjalistyczne czujniki odległościowe, stereowizję lub nawet lidar. %TODO odległościowe, sterowizja, lidar %ODP OK
 
 

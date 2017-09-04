@@ -1,7 +1,7 @@
 \chapter{Implementacja sprzętowo-programowa systemu wizyjnego}
 
 %TODO krótki wstępn. M. in. po co implementacja sprzętowa.
-Celem implementacji sprzętowej jest realizacja określonej funkcjonalności przez dany układ scalony. W przeciwieństwie do programu komputerowego, urządzenie realizujące sprzętowo odpowiednio zaimplementowany algorytm cechuje się większą szybkością działania. Wadą jest z kolei koszt i czas produkcji takiego rozwiązania.
+Celem implementacji sprzętowej jest realizacja określonej funkcjonalności przez dany układ scalony. W przeciwieństwie do programu komputerowego, urządzenie realizujące sprzętowo odpowiednio zaimplementowany algorytm cechuje się większą szybkością działania. Wadą takiego rozwiązania jest z kolei koszt i czas jego przygotowania.
 
 \section{Układy Zynq}
 %TODO No właśnie FPGA czy Zynq ? Bo chyba jednak Zynq%ODP OK
@@ -57,12 +57,12 @@ Co więcej, narzędzie Vivado High-Level Synthesis (HLS) oferuje możliwość ad
 Postępująca zwłaszcza w ostatnich latach integracja i zmniejszanie procesu technologicznego pozwoliły na stworzenie układów łączących logikę programowalną (FPGA) oraz dwurdzeniowy procesor ARM. 
 Układ, na którym oprócz jednostki obliczeniowej znajdują się różne peryferia, nosi nazwę układu heterogenicznego, w branży bardziej znanego jako \textit{System on a Chip} (SoC). %TODO Krzem (pot.) -> układ %ODP OK
 Dzięki magistrali (przykładowo AXI) zapewniającej szybką wymianę danych pomiędzy blokami, taki układ pozwala łączyć możliwość zrównoleglania obliczeń, którą daje logika programowalna (\textit{ang. PL - Programmable Logic}) oraz prostotę rozwoju oprogramowania uruchamianego na procesorze (\textit{ang. PS - Processing System}). 
-W tej ostatniej części istnieje możliwość pracy w systemie operacyjnym (jednym ze specjalnych dystrybucji Linuxowych) lub nawet stworzenia konfiguracji opartej o wieloprocesorowość asynchroniczną (ang. AMP - asynchronous multiprocessing), która pozwala wykorzystać oba dostępne rdzenie procesora do niezależnych celów. Poza tak prostym przypadkiem jak praca z dwiema równoległymi aplikacjami, możliwa jest nawet konfiguracja Linux+RTOS \cite{AMP}. %TODO powt. uruchomienia, rozwinąć AMP %ODP OK
+W tej ostatniej części istnieje możliwość pracy w systemie operacyjnym (jednym ze specjalnych dystrybucj systemu Linux) lub nawet stworzenia konfiguracji opartej o wieloprocesorowość asynchroniczną (ang. AMP - asynchronous multiprocessing), która pozwala wykorzystać oba dostępne rdzenie procesora do niezależnych celów. Poza prostym przypadkiem jak praca z dwiema równoległymi aplikacjami, możliwe jest nawet działanie w konfiguracji Linux+RTOS \cite{AMP}. %TODO powt. uruchomienia, rozwinąć AMP %ODP OK
 Warto tu zauważyć, że narzędzia syntezy logiki od dawna oferowały możliwość stworzenia softprocesorów w układach FPGA (Altera - Nios, Xilinx - MicroBlaze), jednak te rozwiązania istotnie ograniczały dostępne zasoby, a częstotliwość taktowania takich komponentów rzadko przekraczała 200 MHz. 
 
 Powyższa charakterystyka przekonuje, że układy FPGA, a zwłaszcza SoC mógłby być szczególnie doceniony na platformie latającej, gdyż byłby w stanie sprostać wymaganiom stawianym przez zadanie przetwarzania obrazu w czasie rzeczywistym, a dzięki niewielkim wymiarom i niskiemu zużyciu energii nie stanowiłby wielkiego obciążenia przy i tak już mocno ograniczonym czasie lotu na jednej baterii. 
 
-W pracy zdecydowano się wykorzystać układ Zynq SoC firmy Xilinx. O wyborze zadecydował nie tylko charakter projektu wymagający zrównoleglenia wykonywanych obliczeń, ale też niski pobór mocy oraz obecność dwóch rdzeni procesora ARM do realizacji części zadań.%TODO Słabe uzasadnienie %ODP OK
+W pracy zdecydowano się wykorzystać układ Zynq SoC firmy Xilinx. O wyborze zadecydował nie tylko charakter projektu wymagający zrównoleglenia wykonywanych obliczeń, ale też niski pobór mocy oraz obecność dwóch rdzeni procesora ARM do realizacji części zadań.%TODO Słabe uzasadnienie %ODP OK 
 Oczywiście, ze względu na poziom skomplikowania montażu tego urządzenia nie podjęto decyzji o prototypowaniu własnego obwodu drukowanego, lecz wykorzystano niewielki, lecz bogaty w peryferia zestaw PYNQ z układem Zynq SoC XC7Z020. Oprogramowaniem wspierającym rozwój architektury na to urządzenie jest pakiet Xilinx Vivado + SDK.
 
 Część PS układu XC7Z020 jest wyposażona w:
@@ -83,6 +83,7 @@ Część PL stanowi logika z rodziny urządzeń Artix-7, z następującymi param
 
 Poniżej przedstawiono pozostałe najważniejsze parametry platformy PYNQ:
 \begin{itemize}
+	\item sygnał zegarowy o częstotliwości $125$MHz
 	\item 512 MB pamięci DDR3 z 16-bitową magistralą o przepustowości 1050Mbps,
 	\item 16MB pamięci flash,
 	\item slot na kartę MicroSD,
@@ -104,7 +105,7 @@ Poniżej przedstawiono pozostałe najważniejsze parametry platformy PYNQ:
 
 
 %TODO ???  trzeba zacząć prosto. Podstawowym komponentem... %ODP OK
-Podstawowym komponentem toru wizyjnego jest moduł odbierający sygnał wideo z zewnątrz -- w tym wypadku poprzez port HDMI - i poprawne zdekodowanie go do podstawowej, użytecznej przestrzeni barw RGB. 
+Podstawowym komponentem toru wizyjnego jest moduł odbierający sygnał wideo z zewnętrznego źródła -- w tym wypadku poprzez port HDMI - i poprawne zdekodowanie go do podstawowej, użytecznej przestrzeni barw RGB. 
 Taki zestaw sygnałów może być w prosty sposób wykorzystany w tworzonych algorytmach. %TODO może zostać wykorzystane %ODP OK
 Opcjonalne i zalecane jest również wyprowadzenie przetworzonego sygnału RGB na monitor, co pozwoli zweryfikować poprawność tworzonej architektury. 
 Wyżej opisany szkielet został stworzony w tzw. \textit{Block Designie}, a poza modułami firmy Xilinx wykorzystano konwertery DVI$\rightarrow$RGB oraz RGB$\rightarrow$DVI dostarczone przez firmę Digilent -- producenta zestawu PYNQ. 
@@ -144,9 +145,16 @@ Działanie algorytmu MeanShift rozpoczyna się po otrzymaniu sygnału \textit{me
 
 Pracując nad implementacją, istotne stało się określenie wielkości obszaru śledzonego, który ma być zapisywany z każdej klatki obrazu na podstawie materiału wideo w przestrzeni barw HSV.
 Uwzględniając parametry optyczne kamery, jak i rozdzielczość wejściową materiału wideo, podjęto decyzję o śledzeniu obszaru o wymiarach $100 \times 100$ pikseli i ograniczeniu jego otoczenia (czyli możliwości ruchu obiektu pomiędzy klatkami) do 15 pikseli w każdym kierunku.
-Po zakończeniu zapisu fragmentu o wymiarach $130 \times 130$, obliczana jest funkcja gęstości prawdopodobieństwa. Tworzona jest ona w oparciu o jądro i jego gradient, które wygenerowano w procesie inicjalizacji. Ostatnim etapem jest obliczenie podobieństwa i określenie przesunięcia obszaru. Algorytm wykonuje ostatnie etapy w sposób iteracyjny, tj. wykorzystuje zapisane sąsiedztwo obszaru w celu obliczenia zaaktualizowanej funkcji gęstości prawdopodobieństwa i zwiększenia precyzji przesunięcia. Po określonej ilości iteracji podejmowana jest akwizycja obszaru kandydata z kolejnej klatki.
-Analizując możliwości pracy układu okazało się, że algorytm jest w stanie pracować z częstotliwością \textit{60Hz}. Może bowiem przetworzyć rozpatrywany fragment z bieżącej klatki obrazu w czasie ok. XXX sekund, co przy 16.(6)ms czasu trwania ramki zdecydowanie pozwala zakończyć analizę przed zapisem obszaru z kolejnej ramki.  %TODO przedstawić tą analizę... %ODP OK
-
+Po zakończeniu zapisu fragmentu o wymiarach $130 \times 130$, obliczana jest funkcja gęstości prawdopodobieństwa. Tworzona jest ona w oparciu o jądro i jego gradient, które wygenerowano w procesie inicjalizacji. Ostatnim etapem jest obliczenie podobieństwa i określenie przesunięcia obszaru. Algorytm wykonuje ostatnie etapy w sposób iteracyjny, tj. powiększa precyzję przesunięcia śledzonego obszaru, wykorzystując zapisane sąsiedztwo obszaru w celu obliczenia aktualnej funkcji gęstości prawdopodobieństwa. Po określonej ilości iteracji podejmowana jest akwizycja obszaru kandydata z kolejnej klatki.
+Analizując możliwości pracy układu w oparciu o testy symulacyjne okazało się, że algorytm jest w stanie pracować z częstotliwością \textit{60Hz}. Może bowiem przetworzyć rozpatrywany fragment z bieżącej klatki obrazu w czasie ok. 4ms, co przy okresie trwania ramki wynoszącym 16.(6)ms  pozwala zakończyć analizę przed zapisem obszaru z kolejnej ramki.  %TODO przedstawić tą analizę... %ODP OK
+Ogólny schemat blokowy jest przedstawiony na rysunku \ref{fig:MS_scheme}.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=16cm]{Meanshift.png}
+	\captionsetup{justification=centering,margin=1cm}
+	\caption{Schemat blokowy przedstawiający zależności pomiędzy modułami algorytmu MeanShift}
+	\label{fig:MS_scheme}
+\end{figure}
 
 %TODO  Tu opisać koncepcję ralizacji...  %ODP OK
 
@@ -164,7 +172,7 @@ W głównej mierze jest ona związana z obliczeniem jądra i jego gradientów.
 Dane te, wykorzystywane potem w charakterze informacji tylko do odczytu, muszą tu być zapisane w dość uporządkowany sposób. 
 Najlepiej nadaje się do tego konfigurowalna pamięć BRAM. 
 Powinna ona przechowywać informacje dla wszystkich elementów obszaru, to jest 10000 pól. 
-Jej ostateczną organizację przedstawia tabela \ref{tab:kerBRAM}. W kolumnie „Format” litera \textit{U} oznacza liczbę bez znaku, natomiast \textit{S} uwzględnia znak. Kropka oddziela dwie liczby, które określają liczbę bitów przyporządkowanych odpowiednio części całkowitej i ułamkowej.
+Jej ostateczną organizację przedstawia tabela \ref{tab:kerBRAM}. W kolumnie „Format” litera \textit{U} oznacza liczbę bez znaku, natomiast \textit{S} uwzględnia znak. Kropka oddziela dwie wartości, które określają liczbę bitów przyporządkowanych odpowiednio części całkowitej i ułamkowej.
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 \begin{table}[h]
 \centering
@@ -190,7 +198,7 @@ Warto nadmienić, że zestaw informacji związanych z konkretnym pikselem w obsz
 \end{equation}
 Ułatwia to zaprogramowanie dostępu do tych danych. %TODO raczej Ułatwia zaprogramowanie dostępu... %ODP OK
 By umożliwić odczyt obydwu gradientów w jednym cyklu zegara, zagregowano je w wektor o długości rejestru, tj. 18 bitów. 
-Obserwacje poczynione na zapisie gradientów w symulacji dowiodły jednak, że ich wartości są na tyle małe, że 3 najstarsze bity ułamkowe są zawsze równe bitowi znaku. Przykładowo, wartość $0.01$ w formacie S0.11 ma postać $12'b111111011000$. Dysponując $18/2=9$ bitami na gradient można było rozszerzyć precyzję informacji pomijając te 3 nieistotne bity i zapisując ją w rejestrze w notacji S0.11, a nie S0.8 -- co pozytywnie wpływa do dokładność obliczeń. Należy pamiętać jednak o tym, by odczyt z rejestru przechowującego gradienty dołączył te 3 bity do wartości przed rozpoczęciem jakichkolwiek obliczeń. %TODO trochę to niejasne -> opisać jak uzyskano ostateczną wartość %ODP OK
+Obserwacje poczynione na zapisie gradientów w symulacji dowiodły jednak, że ich wartości są na tyle małe, że 3 najstarsze bity ułamkowe są zawsze równe bitowi znaku. Przykładowo, wartość $0.01$ w formacie S0.11 ma postać $12'b111111011000$. Dysponując $18/2=9$ bitami na gradient można było rozszerzyć precyzję informacji pomijając te 3 nieistotne bity i zapisując ją w pamięci w notacji S0.11, a nie S0.8 -- co pozytywnie wpływa do dokładność obliczeń. Należy pamiętać jednak o tym, by odczyt z rejestru przechowującego gradienty dołączył te 3 bity do wartości przed rozpoczęciem jakichkolwiek obliczeń. %TODO trochę to niejasne -> opisać jak uzyskano ostateczną wartość %ODP OK
 
 Pierwszym etapem inicjalizacji jest obliczenie jądra o wymiarach $100\times 100$. Proces ten przebiega iteracyjnie, budując kolejne warstwy jądra \ref{fig:kernel} w 49 powtórzeniach (bok obszaru -1). Wartością dodawaną do odpowiednich elementóW jądra jest $1/100/2=0.02$, zapisywana w formacie U3.15 jako $0.019989013671875$. Algorytm przechodzi przez 3 zagnieżdżone pętle, przemieszczając się po komórkach jądra \textit{\{x,y\}} i kolejnych warstwach \textit{z}. Schemat \ref{fig:kernel_build} przedstawia przebieg algorytmu. Główny warunek może wydawać się wyzwaniem, jednak wyrażenia typu $W/2$, $H/2$ wymagają jedynie przesunięcia wektora o 1 bit w prawo. Nie zmienia to faktu, że implementacja obliczeń wymaga uwzględnienia odpowiednich opóźnień, a następnie synchronizacji z odczytem i zapisem danego rejestru jądra.
 \begin{figure}[h]
@@ -210,7 +218,7 @@ Jak stwierdzono w oparciu o symulacje, w rzeczywistości inicjalizacja pamięci 
 
 \subsection{Zapis obszaru wideo}
 \label{ssec:savideo}
-%TODO żeby to było jasne, to gdzieś wcześniej - na początku, trzeba opisać koncepcję realizacji tego modułu.
+%TODO żeby to było jasne, to gdzieś wcześniej - na początku, trzeba opisać koncepcję realizacji tego modułu. %ODP OK
 
 Na szerszy opis zasługuje sposób zapisu informacji z obrazu, należy bowiem tymczasowo zapamiętać wartości pikseli $H$, na których obliczenia będą kilkukrotnie wykonywane. 
 Dużym obciążeniem dla zasobów układu byłaby próba zapisania całych klatek -- pojedyncza wymagałaby: $1280\cdot720\cdot9\text{b} = 1.037$MB dostępnego miejsca. 
@@ -295,7 +303,7 @@ Zakres dopuszczalnych wartości dla każdej z tych zmiennych to $<0,29>$.
 
 Po przejściu przez wszystkie piksele obszaru następuje ustawienie flagi \textit{histogram\char`_ready}, gdzie w przypadku przetwarzania klatki-wzorca kolejnym zadaniem jest akwizycja pierwszego kandydata, natomiast dla każdej kolejnej rozpocznie obliczanie funkcji podobieństwa.
 Podobnie jak \textit{image\char`_data\char`_ram}, \textit{histogram\char`_ram} działa w trybie True Dual Port. %TODO algroytm przechodzi %ODP OK
-Po obliczeniu funkcji gęstości dla aktualnego obszaru, z pamięci jednocześnie są odczytywane wartości funkcji dla wzorca (port A) i kandydata (port B pamięci)- umożliwiając wykonywanie części dalszych obliczeń w sposób równoległy. %TODO też "jest on w stanie". %ODP OK
+Po obliczeniu funkcji gęstości dla aktualnego obszaru, z pamięci jednocześnie są odczytywane wartości funkcji dla wzorca (port A) i kandydata (port B pamięci) -- umożliwiając wykonywanie części dalszych obliczeń w sposób równoległy. %TODO też "jest on w stanie". %ODP OK
 
 %TODO to proszę konktrertnie co jest przez jakie porty... %ODP OK,wskazano porty w zdaniu w zdaniu wyżej
 
@@ -304,7 +312,7 @@ Po obliczeniu funkcji gęstości dla aktualnego obszaru, z pamięci jednocześni
 Moduł implementujący kalkulację funkcji podobieństwa (i ostatecznie przesunięcia) obszaru, jest najbardziej złożony w tej części systemu. 
 Funkcja podobieństwa, opisana wzorem \eqref{eq:position}, jest obliczana dla każdego piksela w pamięci, należącym do właściwego obszaru (bez sąsiedztwa). %TODO raczej dla każdego piksela %ODP OK
 
-Dla każdego piksela z obszaru $100 \times 100$, będącego adresem dla pamięci $histogram\char`_ram$, wczytywana jest wartość funkcji prawdopodobieństwa wzorca i kandydata. 
+Dla każdego piksela z obszaru $100 \times 100$, którego wartość $H$ jest adresem dla pamięci $histogram\char`_ram$, wczytywana jest wartość funkcji prawdopodobieństwa wzorca i kandydata. 
 Moduł oblicza ich iloraz (wzorzec/kandydat) używając bloku Divider Generator (w wersji 5.1) dostarczonego przez firmę Xilinx. %TODO konkretnie %ODP OK
 Ze względów optymalizacyjnych obcięto 9 najmłodszych bitów obu wartości, gdyż nie wpływały w większym stopniu na dokładność, a ich pominięcie pozwoliło zmniejszyć latencję modułu. %TODO pozbycie -> pominięcie %ODP OK
 Podczas takiego dzielenia logika musi ponadto sprawdzić obecność zera w mianowniku -- wówczas iloraz powinien być zerowany. 
@@ -318,17 +326,19 @@ Operacje te, mimo że zawiłe, nie wpływają na wynik, lecz gwarantują poprawn
 
 Wartości pierwiastka współtworzyć będą zarówno licznik, jak i mianownik ilorazu wektora MeanShift -- oddzielnie dla przesunięcia pionowego i poziomego. %TODO rozdzielnie -> oddzielnie %ODP OK
 Obliczenie iloczynów wymaga pobrania z pamięci \textit{kernel\char`_ram} obu gradientów oraz ich normy. 
-Odczyt jest zoptymalizowany pod zminimalizowanie liczby cykli zegara potrzebnych na odczytanie obu wartości i został oparty o maszynę stanu, będącą zresztą szkieletem całej tej części algorytmu (OPISAĆ). %TODO no właśnie opisać... %nie przyuważyłem tego braku.
+Odczyt jest zoptymalizowany pod zminimalizowanie liczby cykli zegara potrzebnych na odczytanie obu wartości i został oparty o maszynę stanu.
+Po zakończeniu przetwarzania wszystkich pikseli obszaru $100 \times 100$ (sumowania obliczonych na ich podstawie wartościach) ustawiana jest flaga \textit{div\_enable\_de}, która jest podłączona do modułów realizujących dzielenie w wektorze MeanShift. Otrzymane wyniki dzielenia odpowiadają przesunięciu obszaru śledzenia, należy je jednak znormalizować do postaci całkowitej i upewnić się, że obszar po przesunięciu nadal będzie w całości znajdował się w zapisanym fragmencie o wymiarach $130 \times 130$. Pozwoli to wykonać kolejne iteracje, które mogą poprawić wynik śledzenia. O ile pierwsza iteracja rozpoczyna analizę w środku obszaru, to w trakcie kolejnych informacja o położeniu obszaru wewnątrz $130 \times 130$ jest zapamiętywana przez zmienne \textit{offset\_X} oraz \textit{offset\_Y}.
+%TODO no właśnie opisać... %nie przyuważyłem tego braku, dopisano.
 
 
-%TODO Brakuje schematu blokowego modułów wchodząych w skład algorymtu. Te pamięci, konwersja itp...
+%TODO Brakuje schematu blokowego modułów wchodząych w skład algorymtu. Te pamięci, konwersja itp... %ODP Dodano we wstępie
 
 
 \section{Realizacja algorytmu HOG+SVM}
 
-%TODO Też trzeba zacząć od jakieś koncepcji implementacji. %ODP to mam przed właśnie poniżej
+%TODO Też trzeba zacząć od jakieś koncepcji implementacji. %ODP dodano poniżej
 
-Wymagania stawiane przez system mówią o konieczności rozpoznania osoby wraz z dodatkowym określeniem jej wielkości na ekranie (skala ta pozwoli dość ogólnie wyznaczyć odległość drona od obiektu, co wpłynie na sterowanie maszyny). Głównym celem jest utrzymanie stałej odległości od postaci. %TODO w sumie można napisać/powtórzyć, że celem jest utrzymanie stałej odłegłości od pieszego. %ODP OK
+Wymagania stawiane przez system mówią o konieczności rozpoznania osoby wraz z dodatkowym określeniem jej wielkości na ekranie (skala ta pozwoli dość ogólnie wyznaczyć odległość drona od obiektu, co wpłynie na sterowanie maszyny). Jednym z celów jest bowiem utrzymanie stałej odległości od postaci. %TODO w sumie można napisać/powtórzyć, że celem jest utrzymanie stałej odłegłości od pieszego. %ODP OK
 Z tego względu implementacja musi wykorzystać tzw. piramidę skal, czyli równoległą detekcję HOG+SVM na serii obrazów o różnych wymiarach. %TODO serii obrazów o różnych wymiarach %ODP OK
 Dysponując obrazem o rozdzielczości $1280 \times720$, należy przeskalować go do kilku mniejszych, a następnie przeprowadzić na nich opisane wcześniej operacje wyliczenia wektora cech i sklasyfikować go przy użyciu SVM. 
 Odpowiednia lokalizacja postaci (i jej odległość od kamery) zostanie wybrana na podstawie najlepszego \textbf{pozytywnego} wyniku klasyfikacji, w oparciu o wartość $r$ \eqref{eq:HOG_classification}. %TODO \eqref do stosownego równania %ODP OK
@@ -349,7 +359,7 @@ Przedstawia to obraz \ref{fig:HOG_mesh}, gdzie taki wycinek zaznaczono zieloną 
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=15cm]{4_scaled_hog_example.jpg}
+	\includegraphics[width=11cm]{4_scaled_hog_example.jpg}
 	\caption{Analiza obrazu o rozmiarach $144\times 256$}
 	\label{fig:HOG_mesh}
 \end{figure}
@@ -357,8 +367,16 @@ Przedstawia to obraz \ref{fig:HOG_mesh}, gdzie taki wycinek zaznaczono zieloną 
 
 Jeśli algorytm będzie pracował na obszarze $144\times 96$, to zakładając stałe położenie komórek na obrazie (są to kwadraty $4\times4$ wydzielone czerwonymi liniami), powstanie łącznie $5\cdot9=45$ wektorów cech. 
 Reszta obrazu zostaje zignorowana. 
-Współrzędne centrum obszaru detekcji są określane na początku działania pojedynczej iteracji algorytmu i są natychmiastowo konwertowane do odpowiednich skal obrazu. Po zakończeniu klasyfikacji współrzędne odpowiadające najlepszej detekcji są konwertowane do oryginalej skali i wykorzystywane podczas analizy kolejnej dostępnej klatki obrazu.
+Współrzędne centrum obszaru detekcji są określane na początku działania pojedynczej iteracji algorytmu i są natychmiastowo konwertowane do odpowiednich skal obrazu. Po zakończeniu klasyfikacji współrzędne odpowiadające najlepszej detekcji są konwertowane do oryginalnej skali i wykorzystywane podczas analizy kolejnej dostępnej klatki obrazu.
 
+Ogólny schemat blokowy jest przedstawiony na rysunku \ref{fig:HOG_SVM_scheme}.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=16cm]{HOG_SVM.png}
+	\captionsetup{justification=centering,margin=1cm}
+	\caption{Schemat blokowy przedstawiający zależności pomiędzy modułami algorytmu HOG+SVM}
+	\label{fig:HOG_SVM_scheme}
+\end{figure}
 \subsection{Konwersja RGB do skali odcieni szarości}
 
 Obraz wejściowy jest poddawany konwersji zgodnie ze wzorem \eqref{eq:rgb2gray}. 
