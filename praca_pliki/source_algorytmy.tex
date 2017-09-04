@@ -74,18 +74,8 @@ Ze względu na większą bazę użytkowników i dojrzałość projektu, wybrano 
 \subsection{Integracja urządzeń na platformie UAV} %TODO średni tytuł %ODP OK
 
 Zbudowanie drona w oparciu o gotowe komponenty nie jest zadaniem skomplikowanym. 
-Jednak z uwagi na wymagania projektu (opisane w \ref{sec:koncepcja}), należało dokładnie przemyśleć jego przebudowę. %TODO przerobić zdanie, że z uwagi na wymagania projektu - które powinny być opisane wcześniej. %ODP OK
-Schemat \ref{fig:architecture} przedstawia połączenia pomiędzy urządzeniami na platformie UAV.  %TODO arch. sygnałową - dziwne określenie %ODP OK 
-\begin{figure}[]
-	\centering
-	\includegraphics[width=15cm]{5_drone_architecture.png}
-	\caption{Relacje pomiędzy urządzeniami na platformie UAV}
-	\label{fig:architecture}
-\end{figure}
-Linie czerwone określają dystrybucję zasilania z zamontowanej baterii (pominięto konwertery napięcia), natomiast linie czarne opisują propagację sygnałów pomiędzy urządzeniami. Dodatkowo, liniami przerywanymi zaznaczono sygnały opcjonalne wykorzystywane w trakcie naziemnej analizy systemu. Porty szeregowe komputera służą do komunikacji z konsolą zaimplementowaną na układzie Zynq, oraz do konfiguracji autopilota poprzez aplikację MISSION Planner.
-
-Rysunek \ref{fig:drone_photo} przedstawia zdjęcie zmodyfikowanej, gotowej do lotu platformy.
-%TODO brakuje omówienia rysunku. Trzeba go po prostu opisać w tekście. %ODP OK
+Jednak z uwagi na wymagania projektu (opisane w \ref{sec:koncepcja}), należało dokładnie przemyśleć jego przebudowę. Rysunek \ref{fig:drone_photo} przedstawia zdjęcie zmodyfikowanej, gotowej do lotu platformy. %TODO przerobić zdanie, że z uwagi na wymagania projektu - które powinny być opisane wcześniej. %ODP OK
+Z kolei schemat \ref{fig:architecture} opisuje połączenia pomiędzy urządzeniami na platformie UAV.  %TODO arch. sygnałową - dziwne określenie %ODP OK 
 \begin{figure}[h]
 	\centering
 	\captionsetup{justification=centering,margin=1cm}
@@ -94,6 +84,17 @@ Rysunek \ref{fig:drone_photo} przedstawia zdjęcie zmodyfikowanej, gotowej do lo
 	\caption{Dron po niezbędnych modyfikacjach. Pod gąbką ochronną znajduje się układ PYNQ}
 	\label{fig:drone_photo}
 \end{figure}
+\begin{figure}[]
+	\centering
+	\includegraphics[width=15cm]{5_drone_architecture.png}
+	\caption{Relacje pomiędzy urządzeniami na platformie UAV}
+	\label{fig:architecture}
+\end{figure}
+Linie czerwone określają dystrybucję zasilania z zamontowanej baterii (pominięto konwertery napięcia), natomiast linie czarne opisują propagację sygnałów pomiędzy urządzeniami. Dodatkowo, liniami przerywanymi zaznaczono sygnały opcjonalne wykorzystywane w trakcie naziemnej analizy systemu. Porty szeregowe komputera służą do komunikacji z konsolą zaimplementowaną na układzie Zynq, oraz do konfiguracji autopilota poprzez aplikację MISSION Planner.
+
+
+%TODO brakuje omówienia rysunku. Trzeba go po prostu opisać w tekście. %ODP OK
+
 %TODO Brak referencji w txt. "skrywa" się potoczne. %ODP OK
 
 %TODO co to znaczy komputer w trakcie implementacji ? %ODP zamieniono linię na przerywaną (komputer jest opcjonalnie podłączany na ziemi w celu komunikacji z układami)
@@ -487,7 +488,7 @@ H(\theta_l,i,j)&=H(\theta_l)+M_l(i,j)
 \end{equation}
 
 Koncepcję zilustrowano na rysunku \ref{fig:HOG_interpolation}.  %TODO Koncepcję zilutrowano na rysunku XXX %ODP OK
-Przedstawia on okrąg z ponumerowanymi przedziałami, każdy o szerokości $a$. Jeśli orientacja obliczonego gradientu jest kątem $\theta=57^{\circ}$, to przedziałami uwzględnionymi w interpolacji będą te najbliższe, o numerach $3$ oraz $4$. Bazując na wartościach kątów w ich środkach, $\theta_h$ i $\theta_l$, obliczane zostaną $M_h$ i $M_l$ jako odpowiednio: $35\%$ i $65\%$ wartości modułu zgodnie z wzorami \eqref{eq:HOG_linear}.
+Przedstawia on okrąg z ponumerowanymi przedziałami, każdy o szerokości $a$. Jeśli orientacja obliczonego gradientu jest reprezentowana przez kąt $\theta=57^{\circ}$, to przedziałami uwzględnionymi w interpolacji będą te najbliższe, o numerach $3$ oraz $4$. Bazując na wartości kątów w ich środkach, $\theta_h$ i $\theta_l$, obliczane zostaną $M_h$ i $M_l$, jako odpowiednio: $35\%$ i $65\%$ wartości modułu zgodnie z wzorami \eqref{eq:HOG_linear}.
 %TODO Lepiej opisać ten rysunek ! %ODP OK
 Wyjątkowym zdarzeniem jest takie, w którym kąt $\theta$ będzie znajdował w okolicy kąta $0^{\circ}=360^{\circ}$ (z przedziałami 1 oraz 9). 
 Wówczas, dla wygody, w równaniach \eqref{eq:HOG_linear} należy użyć kątów $\theta_l=350^{\circ}$ oraz $\theta_h=370^{\circ}$.

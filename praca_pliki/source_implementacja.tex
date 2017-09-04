@@ -653,10 +653,11 @@ Ze względu na konieczność zapewnienia dobrej dokładności w procesie sumowan
 
 \subsection{Przetwarzanie wyników}
 
-Niezależnie od liczby przetwarzanych skal obrazu, etap klasyfikacji jest dla nich realizowany równolegle, przetwarzając po $5\times 9$ wektorów cech.  i zakończy się to w tym samym momencie, rozpoczynając etap analizy wyników. 
-%TODO proszę to jaśniej opisać. Bo to jest tak, że "po kolei" dla każdej ze skal ? i z jakim zegarem ? To jest niejasne. %ODP
-Jest on dość prosty, gdyż zakłada jedynie porównanie najlepszych rezultatów ze wszystkich skal -- w modułach klasyfikacji zaimplementowano logikę, która zapamiętuje swoje lokalne minima i parametry obszarów (w odpowiednich skalach), na podstawie których je osiągnięto. 
-Skutkiem porównania jest wyłonienie skali z najlepszym wynikiem, a koordynaty tego obszaru zostają dostosowane do rozdzielczości $720 \times 1280$ i mogą być wykorzystane przez warstwę wyższą. %TODO natywnej (średnie słowo) %ODP OK
+Niezależnie od liczby przetwarzanych skal obrazu, etap klasyfikacji jest dla nich realizowany równolegle, przetwarzając po $5\times 9$ wektorów cech i zakończy się w tym samym momencie. Zarówno tworzenie deskryptorów, jak i klasyfikacja są zaimplementowane w modułach działających w oparciu o zegar $148.5$MHz. Pozwala to zrealizować sam etap klasyfikacji w czasie ok. $5$ms.
+Kolejnym etapem jest analiza wyników ze wszystkich skal.
+%TODO proszę to jaśniej opisać. Bo to jest tak, że "po kolei" dla każdej ze skal ? i z jakim zegarem ? To jest niejasne. %ODP OK
+Jest on dość prosty, gdyż zakłada jedynie porównanie najlepszych rezultatów -- w modułach klasyfikacji każdej ze skal zaimplementowano logikę, która zapamiętuje swoje lokalne minima i parametry obszarów (w odpowiednich skalach), na podstawie których je osiągnięto. 
+Skutkiem porównań jest wyłonienie skali z najlepszym wynikiem, a koordynaty tego obszaru zostają dostosowane do rozdzielczości $1280 \times 720$ i mogą być wykorzystane przez warstwę wyższą. %TODO natywnej (średnie słowo) %ODP OK
 
 %TODO Ogólnie - nieco lepszy opis, szczególnie na ogólnym poziomie. I coś z tą normalizacją jest nie tak. %ODP normalizację wyjaśniłem wyżej, poprawiono
 
@@ -1008,4 +1009,4 @@ Proces implementacji sprzętowej szedł w parze z nadzorem wykorzystania zasobó
 	\label{tab:utilizationOverall}
 \end{table} 
 
-Dodatkowo, postanowiono dokonać estymacji poboru mocy przez układ. W tym celu w środowisku Vivado wygenerowano raport w oparciu o określenie temperatury otoczenia równej $25^{\circ}$C i wybór najbardziej pesymistycznego poziomu estymacji. Z dokumentu wynika, że całkowity pobór mocy w układzie nie powinien przekraczać $3.5$W, z czego jednak aż $1.3$W to wartość przyporządkowana części PS. Fragment logiki realizujący metodę HOG+SVM potrzebuje $0.99$W, natomiast MeanShift zaledwie $0.11$W.
+Dodatkowo, postanowiono dokonać estymacji poboru mocy przez układ. W tym celu w środowisku Vivado wygenerowano raport w oparciu o określenie temperatury otoczenia równej $25^{\circ}$C i wybór najbardziej pesymistycznego poziomu estymacji. Z dokumentu wynika, że całkowity pobór mocy w układzie nie powinien przekraczać $3.5$W, z czego jednak aż $1.3$W to wartość pobierana przez część PS. Fragment logiki realizujący metodę HOG+SVM potrzebuje $0.99$W, natomiast MeanShift zaledwie $0.11$W.
