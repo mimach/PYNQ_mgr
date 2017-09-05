@@ -172,8 +172,17 @@ $1.4874$  &  $1.8153$  &  $1.0768$  &  $1.2884$  &  $1.0186$  &  $1.8310$  &  $0
 	\label{tab:scale_window_cover_3}
 \end{table}
 
+Następnie wykonano eksperyment pozwalający potwierdzić działanie detekcji dla implementowanych sprzętowo skal: $2/2.5/3/3.5/4$. W tym celu nagrano sekwencję wideo, która przedstawia postać zbliżającą się w stronę kamery z odległości ok. $10$m. W oparciu o nią uruchomiono skrypt realizujący detekcję na wielu skalach, który zaznacza na ramkach obrazu wszystkie obszary zainteresowań oraz najlepsze okno detekcji. Wyniki przedstawia rysunek \ref{fig:SVMmodel_dist}. Dla obu detekcji z pierwszego rzędu, najlepsze wyniki osiągnięto na obszarze w skali równej $2$. Należy zwrócić uwagę, że ze względu na brak uwzględnienia mniejszych skal w teście, na obrazie przeskalowanym ze współczynnikiem $2$ może zostać wykryta osoba o małych rozmiarach względem okna detekcji (przypadek w lewym górnym rogu rysunku). Rzędy drugi oraz trzeci przedstawiają poprawnie wykrytą postać w pozostałych skalach: odpowiednio $2.5/3/3.5/4$. \newline
+Eksperyment posłużył również do oszacowania odległości postaci od kamery, które należałoby przyporządkować detekcjom w poszczególnych skalach. Na podstawie minimalnej i maksymalnej odległości osoby od kamery w sekwencji wideo (ok. $2m-10$m) można oszacować, że detekcja w skali $4$ odpowiada odległości ok. $2$m, natomiast każda kolejna skala powiększa tę wartość o ok. $1-1.5$m, aż do odległości ok. $7m$ dla detekcji w skali $2$. Tak jak wspomniano wcześniej, w skali tej wykrywana jest również dalej stojąca osoba (nawet $10$m), choć nie jest to regułą.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=15cm]{HOG_scale_all.jpg}
+	\caption{Detekcja dla wielu skal}
+	\label{fig:SVMmodel_dist}
+\end{figure}
+
 %TODO Czy w jakiś sposób obliczena jest finalna detekcja ? Oraz jak to się przekłada na odległosć. %ODP opisano wyżej jak jest liczona
-%TODO Dobrze by było jeszcze zamieścić taki eksperytment - sekwencja na której Pan oddala się od kamery i korespondujące odległości. %Taki ekperyment zrobiłem 'na żywo', z wyjściem video na monitor
+%TODO Dobrze by było jeszcze zamieścić taki eksperytment - sekwencja na której Pan oddala się od kamery i korespondujące odległości. %ODP Dodano
 %TODO Nie wiem czy nie warto rozważyć przetwarzania w więcej niż jednej skali.... albo wszystkich albo przynajmniej sąsiednich (pamiętając tą najlepszą). %ODP Tak robiłem, ale wizualnie to nie ma sensu, bo jest zbyt wiele detekcji i obraz staje się nieczytelny
 
 %TODO BTW, Na takiej sekwencji można też od razu sprawdzić działanie meanshifta. Albo nagrać jeszcze taką gdzie oprócz do przodu idzie się w lewo i prawo... %ODP Nie mam modelu programowego łączącego oba algorytmy, nie wyrobiłem czasowo żeby go połączyć
