@@ -3,86 +3,104 @@
 \chapter{Śledzenie obiektów}
 \label{cha:sledzenieObiektow}
 
-Zadanie śledzenia obiektów jest zagadnieniem z dziedziny przetwarzania obrazów. Polega na zachowaniu ciągłości analizy ruchu obiektów i zapewnieniu ich obecności w polu widzenia kamery. W praktyce wyznacza się punkt na rejestrowanym obrazie (wartość zadaną) i steruje pozycją oraz orientacją kamery w taki sposób, by jego odległość od śledzonego obiektu (również reprezentowanego przez punkt) była jak najmniejsza. Systemy wizyjne tego typu znajdują zastosowanie m.in. w rozpoznawaniu zachowań ludzi, wykrywaniu kolizji z pieszymi (systemy ADAS), weryfikacji pracy urządzeń przemysłowych czy nawet śledzeniu pojazdów na polu walki.
-%TODO rozpoznawania zachowania twarzy dziwnie brzmi. Ogólnie lepsze przykłady. Z ADAS kolizja z pieszym, nawet wojskowe na polu walki śledzenie pojazdów. $ODP OK
+Zadanie śledzenia obiektów jest zagadnieniem z dziedziny przetwarzania obrazów. Można podzielić je na dwa główne zadania. Pierwszym jest zachowanie ciągłości analizy ruchu obiektów, czyli zdolność określenia ich pozycji na każdej klatce obrazu z wystarczającą dokładnością. Drugie zadanie dotyczy tylko kamer ruchomych i polega na zdefiniowaniu ich ruchu w~sposób pozwalający zachować śledzony obiekt w polu widzenia. %TOSO 2 średnie. 1. ta "ciągłość analizy" jest dość enigmatyczna, 2. z tym polem widzenie to jest specyficzny przypadek. Może być też śledzenie ze statycznej kamery. Ogólnie trzeba to nieco lepiej opisać.
+W praktyce wyznacza się punkt na rejestrowanym obrazie (wartość zadaną) i steruje pozycją oraz orientacją kamery w~taki sposób, by jego odległość od śledzonego obiektu (również reprezentowanego przez punkt) była jak najmniejsza. 
+Systemy wizyjne tego typu znajdują zastosowanie m.in. w rozpoznawaniu zachowań ludzi, wykrywaniu kolizji z pieszymi (zaawansowane systemy wsparcia kierowcy -- ang. advanced driver-assistance systems, ADAS), weryfikacji pracy urządzeń przemysłowych czy nawet śledzeniu pojazdów na polu walki.
+%TODO 2 rozwinąc skrót ADAS %ODP OK
 
 %---------------------------------------------------------------------------
 
 \section{Rodzaje algorytmów śledzących}
 \label{sec:algorytmySledzace}
 
-Algorytmy śledzenia można umieścić w 4 głównych kategoriach utworzonych ze względu na metodę identyfikacji śledzonego obiektu na obrazie. 
+Algorytmy śledzenia można podzielić na 4 główne kategorie ze względu na metodę identyfikacji obiektu na obrazie. 
 Wyróżnia się metody:
 \begin{itemize}
 	\item różnicowe,
 	\item częstotliwościowe,
 	\item gradientowe,
-	\item korelacyjne.
+	\item korelacyjne,
+	\item śledzenia poprzez detekcję,
+	\item śledzenia z wykorzystaniem filtrów cząsteczkowych.
 \end{itemize}
 
 Ponadto, istnieje również podstawowy podział na sceny stacjonarne i ruchome. 
-Wykorzystanie kamery stacjonarnej jest stosunkowo proste w realizacji i nie wymaga dużego nakładu obliczeniowego (do głównych czynności należy separacja tła i segmentacja obiektów ruchomych). %TODO uprościć. sceny: stancjonarne i ruchome. W pierwszym przyapdku.... (bo to co Pan napisał jest ciut zbyt zamotone) $ODP OK
-W przypadku kamery posiadającej stopnie swobody, pomiędzy obecną i kolejną klatką obrazu zmianie ulec mogą wartości wszystkich pikseli. %TODO wartości wszystkich pikseli $ODP OK
+Wykorzystanie kamery stacjonarnej jest stosunkowo proste w realizacji i nie wymaga dużego nakładu obliczeniowego (do głównych czynności należy separacja tła i segmentacja obiektów ruchomych/pierwszoplanowych). Śledzenie mogłoby być realizowane tylko w obrębie określonej sceny.%TODO 2 no a gdzie to śledznie ? %ODP OK
+W~przypadku kamery posiadającej stopnie swobody, pomiędzy obecną i kolejną klatką obrazu zmianie ulec mogą wartości wszystkich pikseli. 
 Wyklucza to stosowanie algorytmów opartych o wyodrębnianie tła. 
-Dodatkowo, jakikolwiek ruch kamery może zmieniać położenie obiektu i jego wielkość na obrazie - wymusza to wybór zdecydowanie bardziej złożonych obliczeniowo metod. %TODO może zmieniać (bo też może np. śledzić kamera obiekt i wtedy ruch będzie wolniejszy) $ODP racja, OK
+Dodatkowo, jakikolwiek ruch kamery może zmieniać położenie obiektu i jego wielkość na obrazie -- wymusza to wybór zdecydowanie bardziej złożonych obliczeniowo metod.
 
 \subsection{Algorytmy różnicowe}
 
-Jest to grupa metod, które działają w oparciu o obraz różnicowy, powstały w wyniku odjęcia bieżącego obrazu od poprzedniej klatki lub wcześniej wygenerowanego modelu tła. %TODO modelu tła $ODP OK
-Pozwala to na wyodrębnienie obszarów, gdzie nastąpiła zmiana, która zwykle związana jest z ruchem. %TODO, która zwykle związana jest z ruchem. $ODP OK
-W celu wyeliminowania szumu (minimalnych zmian w wartościach pikseli) stosuje się progowanie \cite{Rosin}. 
-Uzyskuje się maskę binarną - piksele nieruchome (0) i ruchome (1). 
+Jest to grupa metod, które działają w oparciu o obraz różnicowy, powstały w wyniku odjęcia bieżącego obrazu od poprzedniej klatki lub wcześniej wygenerowanego modelu tła.
+Pozwala to na wyodrębnienie obszarów, gdzie nastąpiła zmiana, która zwykle związana jest z ruchem. 
+W~celu wyeliminowania szumu (minimalnych zmian w wartościach pikseli) stosuje się progowanie \cite{Rosin}. 
+Uzyskuje się maskę binarną -- piksele nieruchome (0) i ruchome (1). 
 Analizując taką informację, możliwe jest wyznaczenie nowego położenia obiektu i zdefiniowanie przesunięcia, które nastąpiło pomiędzy klatkami. 
 
-Największą zaletą metod różnicowych jest ich prostota w zrozumieniu oraz implementacji, mająca również efekt w niskiej złożoności obliczeniowej. 
+Największą zaletą metod różnicowych jest ich prostota w zrozumieniu oraz implementacji, a~także niska złożoność obliczeniowa. 
 Z drugiej jednak strony, tak proste metody bywają zawodne w przypadku większych zakłóceń i ruchu w sąsiedztwie obiektu, błędnie interpretowanego jako właściwe przesunięcie. 
 Ponadto, zastosowania tych metod ograniczają się jedynie do obrazów rejestrowanych za pomocą kamery stacjonarnej, co eliminuje je z dalszych rozważań w tej pracy. 
 
 %TODO No dobra. A co jak będą dwa obiekty ? %ODP Pytanie o tę sekcję, czy ogólnie? Jeśli w moim projekciebędą dwie osoby, to algorytm wybierze "bardziej widoczną" i się jej będzie trzymał do czasu zasłonięcia jednej osoby drugą, wtedy się pewnie wysypie.
+%TODO 2 - chodziło o tą sekcję... czy ta metoda (tak jak Pan dotarł do opisu) zakłada co się stanie jak będę dwa obiekty. No a uwagę o zachowaniu Pana to trzeba dać gdzieś indziej - jak jeszzce nie ma. %ODP jest w koncepcji, do opisu takiego zachowania nie dotarłem
 
 \subsection{Algorytmy częstotliwościowe}
 
 Metody te opierają się na interpretacji obrazu w dziedzinie częstotliwości. 
-Istnieją różne filtry częstotliwościowe, które pozwalają na wykrycie krawędzi - więc, odpowiednio zaimplementowane, umożliwiają również identyfikację obiektu na kolejnych klatkach wideo. %TODO może na kolejnych %ODP OK
- %TODO ale akurat Gabor raczej w dziedzinie przestrzennej %ODP OK, wykasowano
+Istnieją różne filtry częstotliwościowe, które pozwalają na wykrycie krawędzi -- więc, odpowiednio zaimplementowane, umożliwiają również identyfikację obiektu na kolejnych klatkach wideo. 
 Praca w dziedzinie częstotliwości daje możliwość wykrycia przesunięć obiektu, które mogłyby zostać niezauważone w przypadku stosowania pozostałych typów metod. 
-Swoją wysoką dokładność algorytmy te każą jednak opłacić nieporównywalnie większą złożonością obliczeniową, związaną z obliczeniem transformaty Fouriera i stosowaniem filtrów częstotliwościowych. %TODO każą jednak opłacić (styl !) %ODP OK
+Ze względu na swoją wysoką dokładność algorytmy te charakteryzują się nieporównywalnie większą złożonością obliczeniową, związaną z obliczeniem transformaty Fouriera i stosowaniem filtrów częstotliwościowych. %TODO każą jednak opłacić (styl !) %ODP OK 
+%TODO 2 -> nie zmienił Pan sformułowania %ODP OK, było 'opłacać', myślałem że chodzi o tę zmianę;)
 
 \subsection{Algorytmy gradientowe}
 
-Działanie wspomnianych metod śledzenia obiektów opiera się na założeniu niewielkich zmian w luminancji (jasności, oświetleniu) oraz niewielkim przesunięciu obiektu pomiędzy kolejnymi klatkami obrazu. %TODO trzeba dodać niewielkim przesunięciu %ODP OK, gdzieś to musiałem zgubić
+Działanie wspomnianych metod śledzenia obiektów opiera się na założeniu niewielkich zmian w luminancji (jasności, oświetleniu) oraz niewielkim przesunięciu obiektu pomiędzy kolejnymi klatkami obrazu. 
 Istotą tych algorytmów jest znalezienie odpowiedniego przesunięcia obiektu pomiędzy kolejnymi klatkami, tak, aby wskaźnik jakości wynikający z podobieństwa obszarów był zminimalizowany. 
 Poszukiwania obszaru można realizować globalnie, bądź na fragmencie będącym otoczeniem śledzonego obiektu. 
-Algorytm realizujący obliczenia lokalnie może zawodzić w sytuacjach, gdy przesunięcia są zbyt duże i wykraczają poza obszar poszukiwań, jednak taka metodyka obniża złożoność obliczeniową całego algorytmu i znajduje swoje zastosowania w określonych sytuacjach. %TODO algorytm prowadzący... - nie personifikować...  %ODP OK
-Spośród wielu algorytmów gradientowych stosowanych do śledzenia obiektów, najpopularniejszymi są MeanShift, Camshift oraz KLT. %TODO do HOG się nie zgodzę. A dodałbym jeszcze KLT. %ODP OK 
+Algorytm realizujący obliczenia lokalnie może zawodzić w sytuacjach, gdy przesunięcia są zbyt duże i wykraczają poza obszar poszukiwań, jednak taka metodyka obniża złożoność obliczeniową całego algorytmu i znajduje swoje zastosowania w określonych sytuacjach.
+Spośród wielu algorytmów gradientowych stosowanych do śledzenia obiektów, najpopularniejszymi są MeanShift, Camshift oraz KLT \cite{GradientMethods}.  %TODO 2 może \cite do artykułów źródłowych %ODP OK
 
 \subsection{Algorytmy korelacyjne}
 
-Działanie tej grupy algorytmów polega na maksymalizacji funkcji korelacyjnej obliczanej na blokach pikseli. %TODO trochę powt. Działanie tej grupy algorytmów polega na maksymalizacji korealcji....%ODP OK
-Podstawowym założeniem jest jeden wspólny kierunek przemieszczenia wszystkich punktów obiektu - nie jest to zatem najlepsze rozwiązanie dla innych typów ruchu. %TODO styl. nie działają.%ODP OK
-Istotnym dla złożoności i wydajności parametrem przy implementacji tej grupy metod jest określenie rozmiaru obszaru poszukiwań -- w przypadku mniejszych, problemem bywa przemieszczenie obiektu poza obszar; w przypadku tych większych istnieje ryzyko znalezienia maksimum funkcji korelacyjnej, które nie odpowiada obiektowi. %TODO no i złożóność...%ODP poprawione
-Zaletą metod korelacyjnych jest jednak mniejsza wrażliwość na zachodzące na siebie obiekty, co umożliwia śledzenie bardziej złożonych ruchów %TODO to jest niejasne %ODP OK poprawione, sam teraz nie wiem o co mogło mi chodzić, a to przeoczyłem przy sprawdzaniu.
-Stosuje się je często, gdy obliczanie pochodnych (dla metod gradientowych) byłoby utrudnione -- przykładowo w przypadku gwałtownego ruchu obiektu lub niewystarczającej częstotliwości próbkowania sygnału wideo. %TODO ten klatkaż to potworek. czestotliwosci próbkowania sygnłaku wideo %ODP niby jest w używany przez filmowców, więc to już bardziej słownictwo zawodowe niż potoczne;) https://sjp.pwn.pl/poradnia/haslo/klatkaz;13832.html; ale zmieniłem
-Jedną z najbardziej popularnych metod korelacyjnych jest BMA, często używana w kompresji wideo \cite{Aroh}.
+Działanie tej grupy algorytmów polega na maksymalizacji funkcji korelacyjnej obliczanej na blokach pikseli.
+Podstawowym założeniem jest jeden wspólny kierunek przemieszczenia wszystkich punktów obiektu.
+Istotnym dla złożoności i wydajności parametrem przy implementacji tej grupy metod jest określenie rozmiaru obszaru poszukiwań -- w przypadku mniejszych, problemem bywa przemieszczenie obiektu poza obszar; w przypadku tych większych istnieje ryzyko znalezienia maksimum funkcji korelacyjnej, które nie odpowiada obiektowi. 
+Zaletą metod korelacyjnych jest jednak mniejsza wrażliwość na zachodzące na siebie obiekty, co umożliwia śledzenie bardziej złożonych ruchów 
+Stosuje się je często, gdy obliczanie pochodnych (dla metod gradientowych) byłoby utrudnione -- przykładowo w przypadku gwałtownego ruchu obiektu lub niewystarczającej częstotliwości próbkowania sygnału wideo. 
+Jedną z najbardziej popularnych metod korelacyjnych jest BMA (ang. block-matching algorithm), często używana w kompresji wideo \cite{Aroh}. %TODO 2 rozwinąć skrót. %ODP OK
 
 \subsection{Algorytmy śledzenia przez detekcję}
-Działanie tej grupy algorytmów polega na niezależnym wykrywaniu określonych obiektów w kolejnych klatkach obrazu. Detekcja jest oparta na ekstrakcji kilku charakterystycznych cech obiektu, na przykład kształtu. W kolejnym etapie tak stworzony deskryptor jest klasyfikowany jako obiekt lub odrzucany. Istotną wadą tych metod śledzenia jest duża wrażliwość na zmianę odległości od obiektu -- rozwiązuje się ten problem poprzez analizę kilku przeskalowanych obrazów, jednak podnosi to ogólną złożoność obliczeniową ekstrakcji cech. Odrębną kwestią są parametry klasyfikatora, uzyskiwane w procesie uczenia i mocno wpływające na efekty działania tych metod.
-W skład tej grupy wchodzą m.in. algorytmy HOG, SIFT oraz SURF.
-%TODO Jeszcze brakuje Panu śledzenia przez detekcję - i do tego ten HOG wchodzi. Z popluarnych metod to jeszcze filtry cząsteczkowe, choć one chyba też umykają Pana klasyfikacji.
+
+Działanie tej grupy algorytmów polega na niezależnym wykrywaniu określonych obiektów w kolejnych klatkach obrazu. 
+Detekcja jest oparta na ekstrakcji kilku cech charakterystycznych obiektu, na przykład opisujących kształt.
+W kolejnym etapie tak stworzony deskryptor jest klasyfikowany jako poszukiwany obiekt lub odrzucany. 
+Istotną wadą tych metod śledzenia jest duża wrażliwość na zmianę odległości od obiektu -- rozwiązuje się ten problem poprzez analizę kilku przeskalowanych obrazów, jednak podnosi to ogólną złożoność obliczeniową ekstrakcji cech. 
+Odrębną kwestią są parametry klasyfikatora -- uzyskiwane w procesie uczenia i mocno wpływające na efekty działania tych metod.
+W skład tej grupy wchodzą m.in. algorytmy HOG (ang. Histogram of Oriented Gradients), SIFT (ang. Scale-Invariant Feature Transform) oraz SURF (ang. Speeded-Up Robust Features) \cite{RHOG}. %TODO 2 rozwinąć skróty %ODP OK
+
 %TODO kolejna kwestia to jednak wypadałoby powołać się na jakąś literaturę na podstawie, której Pan to opisał.
+%TODO 2 tych odnośników Pan nie dodał ? %ODP ten komentarz był do wpisu wyżej, algorytmy śledzenia przez detekcję opisałem dopiero w ostatnim czasie. No ale mogłem coś zacytować przy okazji.
 
 \subsection{Algorytmy śledzenia wykorzystujące filtry cząsteczkowe}
-Idea działania tej grupy metod polega na przedstawieniu pozycji obiektu za pomocą zbioru losowych próbek (cząsteczek). Każda z nich związana jest z prawdopodobieństwem obecności obiektu w pozycji reprezentowanej przez tę cząsteczkę. Po otrzymaniu nowej klatki obrazu, cząsteczkom są przypisywane wagi na podstawie zgodności predykcji. Następnie odpowiednio cząsteczki z dobrym wynikiem są pomnażane, natomiast te o złych parametrach są usuwane z obliczeń.
-Wydajność tej grupy algorytmów w dużej mierze zależy od liczby zdefiniowanych cząsteczek, co może mocno wpłynąć na złożoność obliczeniową.
+
+Idea działania tej grupy metod polega na przedstawieniu pozycji obiektu za pomocą zbioru losowych próbek (cząsteczek). 
+Każda z nich związana jest z prawdopodobieństwem obecności obiektu w pozycji reprezentowanej przez tę cząsteczkę. 
+Po otrzymaniu nowej klatki obrazu, cząsteczkom są przypisywane wagi na podstawie zgodności predykcji. W najprostszym przypadku jest to efekt porównania histogramów interpretowanych jako rozkłady gęstości prawdopodobieństwa. %TODO 2 zbyt "nieprecyzyjne" musi tu Pan doczytać. Natomiast w najprostszym przypadku sprowadza się to do porównywnia histogramów.. (jako rozkładu prawdodopobieństwa). %ODP OK
+Następnie cząsteczki z ,,odpowiednio'' dobrym wynikiem są pomnażane, natomiast te o złych parametrach są eliminowane z dalszych obliczeń.
+Wydajność tej grupy algorytmów w~dużej mierze zależy od liczby zdefiniowanych cząsteczek, przy czym parametr ten ma również istotny wpływ na skuteczność śledzenia.
+
 %Nie wiem, czy mój opis jest do końca poprawny.
 \subsection{Podsumowanie}
 
-Ostatecznie w realizacji projektu postanowiono zaimplementować algorytm gradientowy: MeanShift i metodę śledzenia przez detekcję: HOG+SVM. %TODO HOG śledznie przez detekcję. Tzn. wiem, że tam korzysta się z gradientów, ale...%ODP OK
-O takim wyborze zadecydowała możliwość wykorzystania obu rozwiązań dla obrazu pochodzącego z kamery ruchomej, co w przypadku pracy drona było decyzją naturalną. %TODO powt. algorytmów.%ODP OK
-Mimo, że MeanShift jest algorytmem iteracyjnym (kryterium zakończenia obliczeń stanowi limit iteracji bądź uzyskanie określonej dokładności), to odpowiednie zaprojektowanie modułu obliczeniowego w FPGA pozwoli przetwarzać obraz w czasie rzeczywistym, tj. ukończyć przetwarzanie aktualnej klatki przed rozpoczęciem przetwarzania kolejnej - tak szybko, jak tylko uzyska się na jej temat komplet informacji. %TODO dodać, że przy odpowiednim zaprojektowaniu modułu obliczeniowego%ODP OK
+Ostatecznie w realizacji projektu postanowiono zaimplementować algorytm gradientowy: MeanShift i metodę śledzenia przez detekcję: HOG+SVM.
+O takim wyborze zadecydowała możliwość wykorzystania obu rozwiązań dla obrazu pochodzącego z kamery ruchomej, co w~przypadku pracy drona było decyzją naturalną. 
+Mimo, że MeanShift jest algorytmem iteracyjnym (kryterium zakończenia obliczeń stanowi limit iteracji, bądź uzyskanie określonej dokładności), to odpowiednie zaprojektowanie modułu obliczeniowego w FPGA pozawala przetwarzać obraz w czasie rzeczywistym, tj. ukończyć obliczenia dla aktualnej klatki przed rozpoczęciem przetwarzania kolejnej - tak szybko, jak tylko uzyska się na jej temat komplet informacji. 
 Metoda ta charakteryzuje się dobrymi wynikami w przypadku obiektów zmieniających orientację -- jest to szczególnie przydatne w sytuacji, gdy miejscem umiejscowienia kamery jest dron -- maszyna podatna na podmuchy wiatru zmieniające chwilowo jej orientację względem obiektu. 
 
-Z kolei zastosowanie algorytmu HOG/SVM będzie miało szczególne znaczenie w pierwotnej detekcji śledzonej postaci. Ponadto, jednoczesna analiza kilku przeskalowanych obrazów na danym obszarze pozwoli wybrać najlepszy wynik i określić na tej podstawie odległość kamery od celu  %TODO kompensowanie głębi- usunąć. Natomiast tą rolę trzeba opisać lepiej. Ale to i tak będzie miało sens tylko, jak wcześniej (zgodnie z sugestią) przecyzjie zostanie opisana koncepcja. Rola algorytmu HOG jest dwojaka. Odległość, ale też rozumiem inicjalizacja/re-inicjalizacja mean-shift (metody się uzupełniają) - no przynajmniej w teorii. %ODP Opisano
+Z kolei zastosowanie algorytmu HOG+SVM jest związane z rozpoznaniem kształtu człowieka, co będzie stanowić podstawową metodę potwierdzenia jego obecności na obrazie. Dodatkową korzyścią wynikającą z implementacji algorytmu HOG+SVM jest możliwość pierwotnej detekcji postaci, na podstawie której uruchomiony zostanie system śledzenia. 
+Ponadto, jednoczesna analiza kilku przeskalowanych obrazów na danym obszarze pozwoli wybrać najlepszy wynik i określić na tej podstawie odległość kamery od celu.  %TODO kompensowanie głębi- usunąć. Natomiast tą rolę trzeba opisać lepiej. Ale to i tak będzie miało sens tylko, jak wcześniej (zgodnie z sugestią) przecyzjie zostanie opisana koncepcja. Rola algorytmu HOG jest dwojaka. Odległość, ale też rozumiem inicjalizacja/re-inicjalizacja mean-shift (metody się uzupełniają) - no przynajmniej w teorii. %ODP Opisano
+%TODO 2 no mógłby Pan lepiej rolę tego HOG opisać. %ODP OK
 %Poprawność działania systemu wbudowanego będącego połączeniem obu algorytmów została potwierdzona testami, które zostały przeprowadzone na modelu programowym oraz na symulacjach kodu System Verilog. %TODO to zdanie to do innej cześci pracy. Tu na razie koncepcja. %ODP OK
 
 Oba algorytmy były wcześniej implementowane w układach rekonfigurowalnych w niezależnych projektach \cite{Mazur},\cite{Patel}, \cite{Drozdz}.
@@ -90,13 +108,20 @@ Oba algorytmy były wcześniej implementowane w układach rekonfigurowalnych w n
 
 \section{Algorytm MeanShift}
 
-MeanShift jest algorytmem zaprezentowanym po raz pierwszy w 1975 roku przez K. Fukunagę i L. Hostetlera \cite{Fukunaga}. Jest to metoda znajdowania maksimum rozkładu gęstości na pewnym ograniczonym obszarze. Iteracyjny charakter algorytmu pozwala aktualizować położenie obszaru, przemieszczając go w kierunku maksimum i rozpoczynając ponownie analizę.
+MeanShift jest algorytmem zaprezentowanym po raz pierwszy w 1975 roku przez K. Fukunagę i L. Hostetlera \cite{Fukunaga}. 
+Jest to metoda znajdowania maksimum rozkładu gęstości na pewnym ograniczonym obszarze. 
+Iteracyjny charakter algorytmu pozwala aktualizować położenie obszaru, przemieszczając go w kierunku maksimum i rozpoczynając ponownie analizę.
 
-Z czasem stwierdzono, że MeanShift może znaleźć zastosowanie w systemach wizyjnych. Dla uprzednio zlokalizowanego na obrazie obszaru z obiektem należy zapisać go w postaci histogramu barw. W celu zapewnienia zbieżności histogram ten oblicza się w oparciu o postać jądra, którego wagi będą faworyzowały wartości pikseli w centrum obszaru. Pierwszy histogram pełni rolę wzorca, z którym porównywane są histogramy obszarów z kolejnych klatek obrazu (kandydaci). Dzięki odpowiedno zastosowanym wagom algorytm znajduje maksimum rozkładu gęstości (podobieństwa) i przemieszcza obszar w jego kierunku, by na nowym zestawie pikseli rozpatrzyć kolejnego kandydata.
+Z czasem stwierdzono, że MeanShift może znaleźć zastosowanie w systemach wizyjnych. Dysponując bowiem obszarem na obrazie, w którym znajduje się śledzony obiekt, należy zapamiętać jego funkcję gęstości prawdopodobieństwa w postaci histogramu barw.
+Pełnić on będzie rolę wzorca, z którym porównywane będą histogramy obszarów z kolejnych klatek obrazu (kandydaci).
+ %TODO 2 ??? to jest jakieś niejasne. %ODP OK
+Funkcje gęstości prawdopodobieństwa są obliczane z uwzględnieniem jądra o zdefiniowanej postaci, którego wagi faworyzują wartości pikseli w centrum obszaru. 
+Dzięki właściwemu doborowi jądra algorytm z odpowiednią zbieżnością znajduje przesunięcie odpowiadające maksimum rozkładu gęstości (podobieństwa). Następnie obszar śledzenia zmienia swoje położenie zgodnie z obliczonym wektorem MeanShift, by dysponując nowym zestawem pikseli, możliwe było rozpatrzenie nowego kandydata.
 %TODO TU by się przydało jakieś wprowadzanie i podanie źródła z literatury. %ODP OK
+%TODO 2 Proszę to sobie przeczytać i jednak jaśniej/prościej opisać. %ODP OK
 
 \subsection{Konwersja przestrzeni barw RGB->HSV}
-\label{sec:rgb2hsv} %TODO chyba zły label %ODP OK
+\label{sec:rgb2hsv} 
 
 %TODO Opis mean-shift jest ~ poprawny, ale taki dość trudny do zrozumienia. Na początku trzeba w kilku zadaniach opisać o co chodzi - tak jak jest to na tym schamcie blokwoym i potem uszczegółowić. Proszę też jeszcze raz sprawdzić wzory. %ODP OK
 
@@ -104,20 +129,21 @@ Algorytm MeanShift użyty w procesie śledzenia wykorzystuje rozkład prawdopodo
 Jest to składowa H z przestrzeni barw HSV (ang. \textit{Hue, Saturation, Value}). 
 Domyślną przestrzenią do rejestracji i zapisu obrazów jest jednak RGB, zatem wymagana jest jej konwersja. 
 O ile przestrzeń RGB reprezentowana jest przez sześcian określony parametrami 3 kolorów: czerwonego, zielonego i niebieskiego, to przestrzeń barw HSV opisywana jest przez stożek. 
-Jego podstawą jest koło, którego kąt opisuje barwę (H -- \textit{Hue}). %TODO to jest barwa, kat opisuje barwę %ODP OK
+Jego podstawą jest koło, którego kąt opisuje barwę (H -- \textit{Hue}).
 Kolor czerwony jest reprezentowany przez kąty $0$\si{\degree} (lub $360$\si{\degree}), zielony przez kąt $120$\si{\degree}, a kolor niebieski przez $240$\si{\degree}. 
 Promień koła barw opisuje nasycenie koloru (S -- \textit{Saturation}), zaś za moc światła białego, czyli jasność (V -- \textit{Value}) odpowiada wysokość stożka. 
-Model HSV jest lepiej powiązany ze sposobem, w jaki postrzega ludzki narząd wzroku, dla którego wszystkie barwy są światłem odbitym od obiektów.
+Model HSV jest lepiej powiązany ze sposobem w jaki postrzega ludzki narząd wzroku, dla którego wszystkie barwy są światłem odbitym od obiektów.
 Rysunek \ref{fig:HSV_cone} przedstawia interpretację graficzną składowych przestrzeni HSV na stożku.
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=6cm]{2_HSV.jpg}
-	\caption{Stożkowa przestrzeń barw modelu HSV \cite{HSV}} %TODO  źródło obrazu (na oko wiki) %ODP OK
+	\caption{Stożkowa przestrzeń barw modelu HSV \cite{HSV}} 
 	\label{fig:HSV_cone}
 \end{figure}
 
-Poniższe wzory opisują sposób wyznaczenia poszczególnych składowych przestrzeni HSV w oparciu o RGB \cite{Kryjak}. Wymagają one kilku względnie złożonych operacji dzielenia.
+Poniższe wzory opisują sposób wyznaczenia poszczególnych składowych przestrzeni HSV w oparciu o RGB \cite{Kryjak}. 
+Wymagają one kilku względnie złożonych operacji dzielenia.
 
 \begin{equation}
 \label{HSV_first}
@@ -142,13 +168,12 @@ H=\begin{cases}
 \end{equation}
 
 
-%TODO Można skomentować, że wymajają one operacji dzielena, która jest wzlędnie złożona. %ODP OK
-
 \subsection{Wektor MeanShift}
 \label{ssec:MS}
 
 Istotą działania algorytmu MeanShift jest wyznaczanie maksimum funkcji gęstości w kolejnych iteracjach. 
-Dla określanego obszaru obliczany jest środek ciężkości punktów, których nagromadzenie wskazuje na większy stopień podobieństwa rozpatrywanego obszaru z oryginałem. Do nowego środka ciężkości zostaje przesunięte aktualne położenie środka po zakończeniu algorytmu. %TODO trochę nie wiadomo skąd te punkty %ODP OK
+Dla określanego obszaru obliczany jest środek ciężkości punktów, których nagromadzenie wskazuje na większy stopień podobieństwa rozpatrywanego obszaru z oryginałem (wzorcem). 
+Do nowego środka ciężkości zostaje przesunięte aktualne położenie centrum obszaru po zakończeniu iteracji algorytmu. %TODO 2 to x2 środka tak średnio zręczne. %ODP OK
 
 To przesunięcie nosi nazwę \textit{wektora MeanShift}, który dla zbioru \textit{n} punktów $\{x_{i}\}_{i=1..n}$ oraz środka obszaru w punkcie $y_0$ może zostać zapisany jako:
 
@@ -157,8 +182,8 @@ To przesunięcie nosi nazwę \textit{wektora MeanShift}, który dla zbioru \text
 M(y)=\bigg[\frac{1}{n}\mathlarger{\sum\limits_{i=1}^{n}}x_i\bigg]-y_0
 \end{equation}
 
-Prostota wzoru \eqref{eq:ms1} wynika z ujednolicenia wagi dla wszystkich punktów. %TODO referencja do wzorów \eqref - dodaje nawias %ODP OK
-Wprowadzając wagę punktu zależną od jego odległości od środka obszaru -- takiej, która maleje wraz z oddalaniem się od centrum), wzór \eqref{eq:ms1} można przepisać jako:
+Prostota wzoru \eqref{eq:ms1} wynika z ujednolicenia wagi dla wszystkich punktów. 
+Wprowadzając wagę punktu zależną od jego odległości od środka obszaru -- takiej, która maleje wraz z~oddalaniem się od centrum), wzór \eqref{eq:ms1} można przepisać jako:
 
 \begin{equation}
 \label{eq:ms2}
@@ -174,12 +199,12 @@ Wszystkie punkty mają tu jednak identyczną wagę.
 	\caption{Graficzna interpretacja wektora MeanShift \cite{Egorov}}
 	\label{fig:ms_vector}
 \end{figure}
-%TODO przy tak prostym rysunku można w paint podmienić napisy na PL %ODP OK
+
 
 \subsection{Jądro obszaru}
 
-Celem wyznaczenia jądra (ang. \textit{kernel}) dla obszaru o stałej wielkości jest przypisanie najwyższej wagi punktom, które znajdują się najbliżej środka obszaru. 
-Konsekwencją tego jest nadawanie znikomych wag punktom na jego brzegach. %TODO rubieże to złe słowo (brzegi) %ODP OK
+Celem wyznaczenia jądra (ang. kernel) dla obszaru o stałej wielkości jest przypisanie najwyższej wagi punktom, które znajdują się najbliżej środka obszaru. 
+Konsekwencją tego jest nadawanie znikomych wag punktom na jego brzegach. 
 Postać jądra zwykle przyjmuje klasyczne postacie gęstości rozkładów probabilistycznych: między innymi rozkładu jednorodnego (wagi jednakowe), prostokątnego, Gaussa, Cauchy'ego, Epanechnikova. 
 W niniejszej pracy zdecydowano się wykorzystać jądro trójkątne ze względu na jego dobre wyniki i jednoczesną prostotę implementacji, nie bez znaczenia podczas późniejszej realizacji sprzętowej w układzie FPGA. 
 Jądro takie można opisać poniższym wzorem:
@@ -191,7 +216,7 @@ K(u)=\begin{cases}
 0, & \text{jeśli }\frac{u}{b} > 1
 \end{cases}
 \end{equation}
-gdzie: $u$ jest odległością pomiędzy punktem a środkiem obszaru, a $b$ jest połową jego boku (zakładając, że obszarem jest kwadrat). Rysunek \ref{fig:kernel} przedstawia jądro o wymiarach 100x100 -- w punkcie (50,50) osiąga maksymalną wartość 1 (natomiast $u=0$).
+gdzie: $u$ jest odległością pomiędzy punktem a środkiem obszaru, a $b$ jest połową jego boku (zakładając, że obszarem jest kwadrat). Rysunek \ref{fig:kernel} przedstawia jądro o wymiarach $100\times 100$ -- w punkcie $(50,50)$ osiąga maksymalną wartość $1$ (natomiast $u=0$).
 \begin{figure}[h]
 	\centering
 	\captionsetup{justification=centering,margin=1cm}
@@ -199,7 +224,7 @@ gdzie: $u$ jest odległością pomiędzy punktem a środkiem obszaru, a $b$ jest
 	\caption{Jądro obszaru o wymiarach $100\times100$ (wygenerowane w programie MATLAB)}
 	\label{fig:kernel}
 \end{figure}
-%TODO rysunek może być ciut mniejszy %ODP OK
+
 
 \subsection{Gęstość jądra}
 Mając zbiór $n\times n$ punktów: $\{x_{i},y_{j}\}_{i=1..n,i=j..n}$ z przestrzeni $\mathbb{R}^2$ oraz jądro $K(u)$ dla punktu centralnego $P=(x,y)$ można przedstawić funkcję oszacowania gęstości:
@@ -207,7 +232,6 @@ Mając zbiór $n\times n$ punktów: $\{x_{i},y_{j}\}_{i=1..n,i=j..n}$ z przestrz
 \begin{equation}
 f(P)=\frac{1}{n^2}\sum_{i=1}^{n}\sum_{j=1}^{n}K(||P-P'(i,j)||).
 \end{equation}
-%TODO Nie za bardzo rozumiem dlaczego są dwa wzory... %ODP OK, usunięto nieużywany dalej wzór
 Różniczkując powyższe otrzymuje się:
 \begin{equation}
 \label{eq:K}
@@ -217,7 +241,6 @@ a po podstawieniu $g(x)$ za $-K'(x)$, wzór \eqref{eq:K} może zostać zapisany 
 \begin{equation}
 \nabla f(x)=\frac{1}{n^2}\sum_{i=1}^{n}\sum_{j=1}^{n}(P'(i,j)-P)g(||P-P'(i,j)||),
 \end{equation}
-%TODO tu chyba coś jest nie tak z minusem....też jedna suma uciekła... %ODP OK, walnąłem się przy przeglądaniu pracy Krzyśka Mazura
 Po przekształceniu wzór może być przedstawiony jako:
 \begin{equation}
 \label{eq:kerms}
@@ -226,9 +249,9 @@ Po przekształceniu wzór może być przedstawiony jako:
 \end{aligned}
 \end{equation}
 Ze wzoru \eqref{eq:kerms} można wyodrębnić człon będący gradientem jądra: $g(P)=-K'(P)$. 
-Drugą jego część stanowi wektor MeanShift z wagami odpowiadającymi wartościom gradientu jądra o środku w punkcie $x$. 
+Drugą jego część stanowi wektor MeanShift z wagami odpowiadającymi wartościom gradientu jądra o~środku w punkcie $x$. 
 Zakładając niezerowość wyrażenia $\sum_{i=1}^{n}\sum_{j=1}^{n}g(||P-P'(i,j)||)$, wektor ten może przyjąć ostateczną formę:
-%TODO tu ma Pan ^2, a we wzorach nie... %ODP generalnie w źródłach podawana jest norma z ^2, co wydaje mi się dziwne - opisana przeze mnie funkcja K(||P-P'(i,j)||) zwraca zwraca wartość jądra dla danej odległości od środka [K(0)], w którym osiąga maksimum. Dziwi mnie trochę to zastosowanie kwadratu przy normie, stąd usunąłęm w swoich wzorach.
+
 \begin{equation}
 M_s(P)=\frac{\sum_{i=1}^{n}\sum_{j=1}^{n}P'(i,j)g(||P-P'(i,j)||)}{\sum_{i=1}^{n}\sum_{j=1}^{n}g(||P-P'(i,j)||)} -P.
 \end{equation}
@@ -236,9 +259,9 @@ M_s(P)=\frac{\sum_{i=1}^{n}\sum_{j=1}^{n}P'(i,j)g(||P-P'(i,j)||)}{\sum_{i=1}^{n}
 \subsection{Współczynnik Bhattacharyya}
  \label{ssec:Bhat}
 
-Zastosowanie algorytmu MeanShift do śledzenia obiektów na materiale
+Zastosowanie algorytmu MeanShift do śledzenia obiektów na sekwencji
 wideo wymaga znalezienia zależności pomiędzy funkcjami gęstości wzorca oraz kandydata. 
-W tym celu należy zestawić ze sobą oba rozkłady na przykład za pomocą współczynnika Bhattacharyya, który dla $m$-wymiarowych funkcji gęstości wzorca $q_h$ oraz obszaru-kandydata $p_h$ ze środkiem w punkcie $P$ wyraża się wzorem \cite{Comaniciu}:
+W tym celu należy zestawić ze sobą oba rozkłady, na przykład za pomocą współczynnika Bhattacharyya, który dla $m$-wymiarowych funkcji gęstości wzorca $q_h$ oraz obszaru-kandydata $p_h$ ze środkiem w punkcie $P$ wyraża się wzorem \cite{Comaniciu}:
 \begin{equation}
 \label{eq:Bhat}
 \rho(P)=\sum_{h=1}^{m}\sqrt{p_h(P)q_h}
@@ -251,15 +274,15 @@ Opisane wyżej jądro i jego gradient stanowią inicjalizację całego algorytmu
 Cechą obrazu, dla której będzie liczona funkcja prawdopodobieństwa, jest kolor (H z przestrzeni barw HSV, jest to liczba z zakresu 0-359). 
 Jeśli położenie piksela na obrazie wzorca oznaczone jest jako $\{x_{i},y_{j}\}_{i=1..n,i=j..n}$, niech zdefiniowana będzie funkcja $b:\mathbb{R}^2\rightarrow\{1..m\}$, która odwoływać się będzie do składowej \textit{H} danego piksela.
 
-Barwa piksela stanowi argument funkcji prawdopodobieństwa utworzonego dla \textit{H} na danym obszarze detekcji. %TODO przede wszystkim ? %ODP OK, wykasowano
-Współczynnik Bhattacharyya jest \textit{de facto} porównaniem dwóch funkcji prawdopodobieństwa (wzorca i kandydata), każdej będącej histogramem o 360 przedziałach. %TODO wymiar cech to średnio brzmi %ODP OK
+Barwa piksela stanowi argument funkcji prawdopodobieństwa utworzonego dla \textit{H} na danym obszarze detekcji.
+Współczynnik Bhattacharyya jest \textit{de facto} porównaniem dwóch funkcji prawdopodobieństwa (wzorca i kandydata) --  dwóch histogramów o~360 przedziałach. 
 Podczas obliczania prawdopodobieństwa wystąpienia określonego koloru, istotną rolę odgrywać musi wartość jądra, które zwiększa wagę pikseli znajdujących się w centrum obszaru, marginalizując znaczenie tych brzegowych -- które mogłyby być częścią zmiennego w czasie tła. 
-O ile w tradycyjnym histogramie wartości przedziałów zwiększa się poprzez inkrementację, to w tym przypadku zdecydowano się na powiększenie o wartość jądra odpowiadającego położeniu piksela na obszarze 100x100.
+O ile w~tradycyjnym histogramie wartości przedziałów zwiększa się poprzez inkrementację, to w tym przypadku zdecydowano się na powiększenie o wartość jądra odpowiadającego położeniu piksela na obszarze $100 \times 100$.
 Dla przykładowej barwy $h$, funkcja gęstości prawdopodobieństwa może być zdefiniowana jako:
 \begin{equation}
 q_h=C\sum_{i=1}^{n}\sum_{j=1}^{n}K(||P-P'(i,j)||)\delta[b(P'(i,j))-h],
 \end{equation}
-gdzie $P$ to nadal środek obszaru detekcji, a symbol $\delta$ jest deltą Kroneckera. Współczynnik $C$ odpowiada za normalizację $q_h$: $\sum_{h=1}^{m}q_h=1$.
+gdzie: $P$ to nadal środek obszaru detekcji, a symbol $\delta$ jest deltą Kroneckera. Współczynnik $C$ odpowiada za normalizację $q_h$: $\sum_{h=1}^{m}q_h=1$.
 Po przekształceniu okazuje się, że:
 
 \begin{equation}
@@ -273,7 +296,7 @@ Uwzględniając obszar ze środkiem w punkcie $P$, wzór prezentuje się następ
 p_h(P)=C_k\sum_{i=1}^{n}\sum_{j=1}^{n}K(||P-P'(i,j)||)\delta[b(P'(i,j))-h] 
 \end{equation}
 
-Współczynnik $C_h$ wyznacza się podobnie, jak dla wzorca, jednak z uwgzlędnieniem położenia środka obszaru kandydata, $P$:
+Współczynnik $C_h$ wyznacza się podobnie, jak dla wzorca, jednak z uwzględnieniem położenia środka obszaru kandydata, $P$:
 \begin{equation}
 C_k=\frac{1}{\sum_{i=1}^{n}\sum_{j=1}^{n}K(||P-P'(i,j)||)} 
 \end{equation}
@@ -305,18 +328,6 @@ Wykorzystując wektor MeanShift z rozdziału \ref{ssec:MS} z wagami równymi war
 \Delta P=\frac{\sum_{i=1}^{n}\sum_{j=1}^{n}P(i,j)\cdot w_{i,j}\cdot g(P-P'(i,j))}{\sum_{i=1}^{n}\sum_{j=1}^{n}w_{i,j}\cdot g(||P-P'(i,j)||)}
 \end{equation}
 
-\subsection{Warunki zakończenia algorytmu}
-
-W przypadku algorytmu iteracyjnego konieczne jest zdefiniowanie celów, które należy osiągnąć. 
-Uzyskanie całkowitego podobieństwa pomiędzy wzorcem i kandydatem w zmiennej sekwencji obrazów jest w realnych warunkach nie do uzyskania. %TODO powt. osiągnąć. %ODP OK
-Chcąc przetwarzać obraz w czasie rzeczywistym, należy zakończyć przetwarzanie klatki przed momentem, w którym dane z następnej będą gotowe. 
-Stąd dwa podstawowe warunki zakończenia algorytmu to:
-\begin{enumerate}
-	\item numer iteracji == maksymalna liczba iteracji
-	\item $||P_{n_m}-P_{n_{m-1}}||<\epsilon$, %TODO =0 czy mniejsze od Epislon %ODP OK
-\end{enumerate} 
-gdzie $n$ jest liczbą porządkową klatki, $m$ numerem iteracji algorytmu MeanShift dla konkretnej klatki, a $\epsilon$ stanowi akceptowalnie małą wartość.
-W momencie spełnienia jednego z powyższych warunków, akceptuje się dotychczasowo uzyskaną zmianę położenia obszaru detekcji i rozpoczyna obliczenia następnej klatki. Rysunek \ref{fig:MS_diagram} przedstawia schemat blokowy algorytmu MeanShift dla sygnału wideo \ref{fig:MS_scheme}. %TODO schemat blokowy %ODP OK
 \begin{figure}
 	\centering
 	\hspace*{-3cm}
@@ -324,23 +335,47 @@ W momencie spełnienia jednego z powyższych warunków, akceptuje się dotychcza
 	\caption{Schemat blokowy algorytmu MeanShift}
 	\label{fig:MS_scheme}
 \end{figure}
+\subsection{Warunki zakończenia algorytmu}
+
+W przypadku algorytmu iteracyjnego konieczne jest zdefiniowanie celów, które należy osiągnąć. 
+Uzyskanie całkowitego podobieństwa pomiędzy wzorcem i kandydatem w zmiennej sekwencji obrazów jest w realnych warunkach nie do uzyskania.
+Chcąc przetwarzać obraz w~czasie rzeczywistym, należy zakończyć przetwarzanie klatki przed momentem, w którym dane z następnej będą gotowe. 
+Stąd dwa podstawowe warunki zakończenia algorytmu to:
+\begin{enumerate}
+	\item numer iteracji == maksymalna liczba iteracji
+	\item $||P_{n_m}-P_{n_{m-1}}||<\epsilon$, 
+\end{enumerate} 
+gdzie: $n$ jest liczbą porządkową klatki, $m$ numerem iteracji algorytmu MeanShift dla konkretnej klatki, a $\epsilon$ stanowi akceptowalnie małą wartość.
+W momencie spełnienia jednego z powyższych warunków, akceptuje się dotychczasowo uzyskaną zmianę położenia obszaru detekcji i~rozpoczyna obliczenia następnej klatki. 
+Rysunek \ref{fig:MS_scheme} przedstawia schemat blokowy algorytmu MeanShift dla sygnału wideo. %TODO schemat blokowy %ODP OK
+%TODO coś nie tak z ]ref / label %ODP OK
+
 
 
 
 \section{Algorytm HOG+SVM}
 \label{sec:HOG&SVM}
 
-Jedną z metod śledzenia przez detekcję jest algorytm wykorzystujący zestaw cech obrazu -- konkretnie histogram zorientowanych gradientów (ang. \textit{Histogram of Oriented Gradients - HOG}); rolę decyzyjną pełni klasyfikator nazywany maszyną wektorów nośnych (ang. \textit{Support Vector Machine - SVM}). %TODO śledznie przez detekcję. ukierunk...->zorientowanych %ODP OK
-Pierwotnie, rozwiązanie to zostało przedstawione w pracy \cite{Dalal} z zastosowaniem w detekcji pieszych; po nieznacznych zmianach powinno ono osiągnąć dobre wyniki w realizowanym projekcie. %TODO 1. cite, 2 hybrya ? po ,co średni styl. %DOP OK
-Metodykę klasyfikacji w oparciu o zestaw cech można również zastosować do detekcji innych obiektów - w szczególności takich, które charakteryzują się dość unikalnym układem krawędzi.
-%Oczywiście należy dodać, że dysponując odpowiednim zestawem informacji, odpowiednio trenowany mechanizm SVM byłby w stanie działać z innymi obiektami. %TODO to też takie sobie. Raczej, że podejście można też zastosować do detekcji innych obiektów, w szczególności takich, które charakteryzują się względnie unikalnym układem krawędzi. %ODP OK
+Jedną z metod śledzenia przez detekcję jest algorytm wykorzystujący zestaw cech obrazu -- konkretnie histogram zorientowanych gradientów (ang. \textit{Histogram of Oriented Gradients - HOG}); rolę decyzyjną pełni klasyfikator nazywany maszyną wektorów nośnych (ang. \textit{Support Vector Machine - SVM}).
+Pierwotnie, rozwiązanie to zostało przedstawione w pracy \cite{Dalal} z zastosowaniem w detekcji pieszych; po nieznacznych zmianach powinno ono osiągnąć dobre wyniki w realizowanym projekcie. 
+Metodykę klasyfikacji w oparciu o zestaw cech można również zastosować do detekcji innych obiektów -- w szczególności takich, które charakteryzują się dość unikalnym układem krawędzi.
 
-Założeniem metody HOG+SVM jest przedstawienie okna detekcji w formie tzw. deskryptora (wektora cech), który pozwoli przeprowadzić proces uczenia klasyfikatora na podstawie dostępnych próbek w sposób umożliwiający skuteczną klasyfikację nowych obrazów. W tym celu okno detekcji dzielone jest na mniejsze, jednakowej wielkości obszary (komórki). Dla każdego z pikseli wewnątrz okna obliczana jest wartość gradientu, jego orientacja i moduł, po czym piksele przydzielone do jednej komórki tworzą histogram zorientowanych gradientów. Okno detekcji jest następnie reorganizowane w formę bloków składających się z współdzielonych pomiędzy sobą 4 komórek (histogramów). Każdy z bloków jest niezależnie normalizowany, po czym wszystkie są łączone w postać wektora cech.\newline
-Uczenie maszyny wektorów nośnych polega na wyznaczeniu hiperpłaszczyzny, która rozdzieli deskryptory należące do dwóch klas z maksymalnym marginesem. Klasyfikacja jest etapem prostszym, podczas którego obliczana jest pozycja badanego wektora cech względem hiperpłaszczyzny (określana jest jego klasa).
+Założeniem metody HOG+SVM jest przedstawienie fragmentu wejściowego obrazu (okna detekcji) w formie tzw. deskryptora -- wektora cech, który podlegać będzie klasyfikacji.
+Proces generowania deskryptora polega na podzieleniu okna detekcji na mniejsze, jednakowej wielkości obszary (komórki). 
+Dla każdego z pikseli wewnątrz okna obliczana jest wartość gradientu, jego orientacja i moduł, po czym piksele przydzielone do jednej komórki tworzą histogram zorientowanych gradientów. 
+Okno detekcji jest następnie reorganizowane w formę bloków składających się z współdzielonych pomiędzy sobą 4 komórek (histogramów). 
+Każdy z bloków jest niezależnie normalizowany, po czym wszystkie łączone są w postać wektora cech.
 
-%TODO Tutaj też jakieś kilka zdań ogólnych i później omówinie konkrentych etapów. %ODP OK
+Klasyfikator SVM działa w oparciu o współczynniki otrzymane na etapie uczenia. Proces uczenia maszyny wektorów nośnych polega na wyznaczeniu hiperpłaszczyzny, która rozdzieli deskryptory należące do dwóch klas z maksymalnym marginesem. Wymaga to obliczenia zbioru wektorów cech na oknach detekcji, które zostały już przyporządkowane poszczególnym klasom.
+Klasyfikacja jest etapem prostszym, w trakcie którego obliczana jest pozycja analizowanego wektora cech względem zdefiniowanej hiperpłaszczyzny (na tej podstawie określana jest jego klasa).
+ %TODO 2 jakies to zamotane. Wejściem jest fargment tobarzu, dla niego wyliczane są cechy.... Zbiór wektroów cech + etykiety do SVM. %ODP OK
+%TODO 2 było \new line -> unikać. %ODP OK
 
-\subsection{Konwersja RGB->GRAY i obliczenie orientacji} %TODO Obliczenie orientacji %ODP OK
+
+
+%TODO 2 też jeszcze raz przeczytać i wygładzić ten opisa. %ODP OK
+
+\subsection{Konwersja RGB->GRAY i obliczenie orientacji} 
 \label{sec:HOGgrad}
 Pierwszym etapem jest dostosowanie pierwotnej palety barw RGB do 8-bitowej skali szarości. 
 Dokonuje się tego, przekształcając każdy piksel według wzoru:
@@ -350,7 +385,6 @@ P_{GRAY}=0.299P_R + 0.587P_G + 0.114P_B
 \end{equation}
 %Sumowanie się współczynników do jedności ma w zamierzeniu ograniczyć wynik tego przekształcenia do zakresu 0-255. %TODO zdanie niepotrzebne %ODP OK
 
-%TODO swoją drogę, to w origninalej pracy inaczej jest taktowany obraz RGB, ale niech już będzie. %ODP Michał Drożdż oparł swój algorytm na skali odcieni szarości, wzorowałem się na nim
 
 Następnie przeprowadzana jest operacja kontekstowa w celu obliczenia gradientów kierunkowych $g_x$ oraz $g_y$; używane maski to odpowiednio: $[-1,0,1]$ oraz $[-1,0,1]^T$. 
 Mając gradienty, dla każdego piksela (o koordynatach [$i,j$]) obliczany jest moduł i kąt ze wzorów:
@@ -366,13 +400,13 @@ m(i,j)=\sqrt{g_x(i,j)^2+g_y(i,j)^2} \\
 \subsection{Histogram gradientów}
 
 W kolejnym etapie poddawany przetwarzaniu obraz jest dzielony na kwadratowe obszary (dla jasności nazywane od teraz \textit{komórkami}) o wymiarach $4\times4$, $8\times8$ lub $16\times16$ pikseli. 
-W każdej z komórek zostanie wyliczony niezależny histogram na podstawie orientacji gradientu. %TODO kątów -> orientacji %ODP OK
-Oprócz rozmiaru komórki, kluczowym okazuje się również drugi parametr, czyli liczba przedziałów pojedynczego histogramu -- w tym wypadku zdecydowano, by rozpatrywany kąt przyporządkowywać jednemu z 9 przedziałów określających kierunek (z pominięciem zwrotu). Dzielą one równo zakres kątów $[0^{\circ},180^{\circ})$ -- i odpowiednio $[-180^{\circ},0^{\circ})$. %TODO przedziałów klasowych ??, komplementarnie - nie wynika z tego, że "zwrot" jest pomijane] %ODP OK
-Wynika z tego, że każdy kolejny fragment o szerokości $a=180^{\circ}/9=20^{\circ}$ będzie stanowić osobny przedział histogramu. %TODO jw. %ODP OK
+W każdej z komórek zostanie wyliczony niezależny histogram na podstawie orientacji gradientu.
+Oprócz rozmiaru komórki, kluczowym okazuje się również drugi parametr, czyli liczba przedziałów pojedynczego histogramu -- w tym wypadku zdecydowano, by rozpatrywany kąt przyporządkowywać jednemu z 9 przedziałów określających kierunek (z pominięciem zwrotu). Dzielą one równo zakres kątów $[0^{\circ},180^{\circ})$ -- i odpowiednio $[-180^{\circ},0^{\circ})$. 
+Wynika z tego, że każdy kolejny fragment o szerokości $a=180^{\circ}/9=20^{\circ}$ będzie stanowić osobny przedział histogramu.
 
 O ile typowy histogram tworzony jest poprzez inkrementację odpowiedniego licznika dla przedziału o 1, to tworzona struktura będzie wykorzystywać obliczony wcześniej moduł z gradientu. 
-Dodatkowo, autorzy publikacji wspominają o możliwości interpolacji pomiędzy dwoma sąsiednimi przedziałami i inkrementacji poszczególnych wartości o proporcjonalne części modułu -- dowiedziono eksperymentalnie, że takie działanie pozytywnie wpływa na wyniki detekcji. %TODO nie ma tylko wypływa - są na dowody w tej pracy (eksperymentalne) %ODP OK
-Jeśli zatem przyjąć, że $\theta_h$ i $\theta_l$ to wartości kątów będących środkami dwóch sąsiadujących ze sobą przedziałów, którym jednocześnie najbliżej do badanego kąta $\theta$, wówczas będzie można zdefiniować elementy $M_h$ i $M_l$ jako: %TODO inkrementy ??? %ODP OK
+Dodatkowo, autorzy publikacji wspominają o możliwości interpolacji pomiędzy dwoma sąsiednimi przedziałami i inkrementacji poszczególnych wartości o proporcjonalne części modułu -- dowiedziono eksperymentalnie, że takie działanie pozytywnie wpływa na wyniki detekcji. 
+Jeśli zatem przyjąć, że $\theta_h$ i $\theta_l$ to wartości kątów będących środkami dwóch sąsiadujących ze sobą przedziałów, którym jednocześnie najbliżej do badanego kąta $\theta$, wówczas będzie można zdefiniować elementy $M_h$ i $M_l$ jako: 
 
 \begin{equation}
 \label{eq:HOG_linear}
@@ -382,7 +416,7 @@ M_l(i,j)&=m(i,j)\bigg(\frac{\theta_h-\theta}{a}\bigg)
 \end{aligned}\right.
 \end{equation}
 
-Ostatecznie, następuje powiększenie wartości dwóch odpowiednich przedziałów histogramu $H$ tworzonego w obrębie komórki zawierającej piksel o współrzędnych (i,j):
+Ostatecznie, następuje powiększenie wartości dwóch odpowiednich przedziałów histogramu $H$ tworzonego w obrębie komórki zawierającej piksel o współrzędnych $(i,j)$:
 
 \begin{equation}
 \label{eq:HOG_increment}
@@ -392,9 +426,10 @@ H(\theta_l,i,j)&=H(\theta_l)+M_l(i,j)
 \end{aligned}\right.
 \end{equation}
 
-Koncepcję zilustrowano na rysunku \ref{fig:HOG_interpolation}.  %TODO Koncepcję zilutrowano na rysunku XXX %ODP OK
-Przedstawia on okrąg z ponumerowanymi przedziałami, każdy o szerokości $a$. Jeśli orientacja obliczonego gradientu jest reprezentowana przez kąt $\theta=57^{\circ}$, to przedziałami uwzględnionymi w interpolacji będą te najbliższe, o numerach $3$ oraz $4$. Bazując na wartości kątów w ich środkach, $\theta_h$ i $\theta_l$, obliczane zostaną $M_h$ i $M_l$, jako odpowiednio: $35\%$ i $65\%$ wartości modułu zgodnie z wzorami \eqref{eq:HOG_linear}.
-%TODO Lepiej opisać ten rysunek ! %ODP OK
+Koncepcję zilustrowano na rysunku \ref{fig:HOG_interpolation}.  
+Przedstawia on okrąg z ponumerowanymi przedziałami, każdy o szerokości $a$. 
+Jeśli orientacja obliczonego gradientu jest reprezentowana przez kąt $\theta=57^{\circ}$, to przedziałami uwzględnionymi w interpolacji będą te najbliższe, o numerach $3$ oraz $4$. 
+Bazując na wartości kątów w ich środkach, $\theta_h$ i $\theta_l$, obliczane zostaną $M_h$ i $M_l$, jako odpowiednio: $35\%$ i $65\%$ wartości modułu zgodnie z wzorami \eqref{eq:HOG_linear}.
 Wyjątkowym zdarzeniem jest takie, w którym kąt $\theta$ będzie znajdował w okolicy kąta $0^{\circ}=360^{\circ}$ (z przedziałami 1 oraz 9). 
 Wówczas, dla wygody, w równaniach \eqref{eq:HOG_linear} należy użyć kątów $\theta_l=350^{\circ}$ oraz $\theta_h=370^{\circ}$.
 
@@ -408,19 +443,17 @@ Wówczas, dla wygody, w równaniach \eqref{eq:HOG_linear} należy użyć kątów
 
 \subsection{Normalizacja}
 
-Zazwyczaj, analizowany materiał wideo będzie rejestrowany w warunkach, w których ciężko zagwarantować równy poziom oświetlenia poszczególnych fragmentów obrazu. %TODO nie amatroskich... w warunkach, w których ciężko zagwarantować... %ODP OK
+Zazwyczaj, analizowany materiał wideo będzie rejestrowany w warunkach, w których ciężko zagwarantować równomierny poziom oświetlenia poszczególnych fragmentów obrazu.
 Zakłócenia te negatywnie wpływają na wyniki działania algorytmu.
-%Zdegenerowany w ten sposób obraz nie dawałby dobrych wyników działania algorytmu.  
-%TODO Zakłócenie te nagatywnie... %ODP OK
-Z tego powodu proponuje się stosowanie blokowej normalizacji. 
+Z tego powodu proponuje się stosowanie normalizacji blokowej. 
 
-Proponowane podejście zakłada utworzenie struktur nazywanych \textit{blokami}, gdzie każdy z nich obejmować ma $2\times 2$ sąsiednie komórki. 
-Dla obrazu, na bazie którego utworzono $N \times M$ komórek, powinno powstać $N-1 \times M-1$ bloków -- przy ich generowaniu wykonuje się krok o jedną komórkę w poziomie i/lub w pionie względem poprzedniego obszaru. 
+Podejście zakłada utworzenie struktur nazywanych \textit{blokami}, gdzie każdy z nich obejmować ma $2 \times 2$ sąsiednie komórki. 
+Dla obrazu, na bazie którego utworzono $N \times M$ komórek, powinno powstać $(N-1) \times(M-1)$ bloków -- przy ich generowaniu wykonuje się krok o jedną komórkę w poziomie i/lub w pionie względem poprzedniego obszaru. 
 Rozmiar pojedynczego bloku sugeruje, że będzie się on składał z 4 histogramów, w formie wektora: 
 \begin{equation}
 v=[H_{i,j}, H_{i,j+1}, H_{i+1,j}, H_{i+1,j+1}],
 \end{equation} 
-gdzie: $i$  wiersz, $j$ - kolumna. Następnie należy dokonać normalizacji, wykorzystując jedną z sugerowanych zależności: %TODO raczej dokonać normalizacji.. %ODP OK
+gdzie: $i$  wiersz, $j$ - kolumna. Następnie należy dokonać normalizacji, wykorzystując jedną z~ sugerowanych zależności: 
 
 \begin{equation}
 \label{eq:HOG_norm1}
@@ -451,35 +484,33 @@ L2_{hys}&=\frac{v}{\sqrt{\sum_{i}^{n}v_i^2+\epsilon^2}}, v\leq 0.2
 \end{equation}
 W powyższych równaniach $\epsilon$ to stała o małej wartości, a $n$ to liczba elementów w bloku (4 histogramy po 9 przedziałów $\rightarrow$ 36). Wektory $L$ zebrane z całego okna detekcji budują ostateczny wektor cech, na którym pracować będzie klasyfikator.
 
-Niech podsumowaniem rozważania będzie przykład -- okno detekcji o rozmiarze $200\times 400$ i komórka o wielkości $8 \times 8$. 
-Wynikiem opisywanej procedury będzie utworzenie aż $25\cdot50=1250$ komórek i $24\cdot 49=1176$ bloków. 
-Po normalizacji, klasyfikator otrzymałby aż $1176\cdot4\cdot9=42336$ wartości do przetworzenia. 
-Obsługa tak dużej ilości danych niesie za sobą konieczność pewnych optymalizacji, co będzie rozważone w rozdziale poświęconym implementacji algorytmu.
+Niech podsumowaniem rozważania będzie przykład -- okno detekcji o rozmiarze \mbox{$200\times 400$} i komórka o wielkości $8 \times 8$. 
+Wynikiem opisywanej procedury będzie utworzenie aż \mbox{$25\cdot50=1250$}~komórek i $24\cdot 49=1176$ bloków. 
+Po normalizacji blokowej klasyfikator otrzymałby aż $1176\cdot4\cdot9=42336$ wartości do przetworzenia. 
+Obsługa tak dużej ilości danych niosłaby za sobą konieczność pewnych optymalizacji, co będzie rozważone w rozdziale poświęconym implementacji algorytmu.
 %TODO przykłąd nietafiony, bo zawsze się wykonuje detekcję w oknach %ODP wielkość zmieniono, chodziło mi raczej o przejście przez obliczenia na jakimkolwiek przykładzie.
+%TODO 2 to dlaczego nie wybrał Pan std. tj. 128 x 64. %ODP przykład dużego okna detekcji pokazuje jak wiele elementów należałoby przetworzyć, co też uzasadnia wykorzystanie okna 128x64. Poza tym, jeśli ktoś chciałby się oprzeć na pracy i implementować HOG+SVM, to ma dwa przykłady obliczeń - ten którego używam, i ten powyżej
 
 \subsection{Klasyfikator SVM}
 
-Maszyna wektorów nośnych to klasyfikator binarny, który dzięki swej prostocie i skuteczności jest powszechnie wykorzystywany w procesie odróżniania klas w różnych aplikacjach, w tym wizyjnch \cite{Gunn}. %TODO w różnych aplikacjach, w tym wizyjnch. %ODP OK
+Maszyna wektorów nośnych to klasyfikator binarny, który dzięki swej prostocie i skuteczności jest powszechnie wykorzystywany w procesie odróżniania klas w różnych aplikacjach, w~tym wizyjnych \cite{Gunn}. 
 Jego działanie tradycyjnie można podzielić na dwie fazy: uczenie i klasyfikację. 
 Etap uczenia to relatywnie dłuższy czasowo proces wyznaczenia hiperpłaszczyzny, która z jak najlepszym marginesem rozdzieli wejściowe wektory cech obiektów klasyfikowanych jako \textit{1} od tych określonych jako \textit{0} (umownie). 
-Stosowane podeście nie powinno odbiegać od klasycznej metodologii uczenia maszynowego -- dysponując zbiorem danych wejściowych, należy dokonać podziału na próbki uczące oraz testowe (w stosunku około 70:30). %TODO trenujące -> uczące %ODP OK
-Każdy z tych podzbiorów (a przede wszystkim uczący) powinien posiadać zarówno obiekty zdefiniowane jako pozytywne, jak i negatywne. 
-W niniejszej pracy, która ma na celu rozpoznanie osoby w postawie stojącej, wymagane będzie użycie obrazów o rozmiarch $128\times64$, przedstawiających taką postać w jak największej liczbie kombinacji (ale w podobnej skali), lecz także obrazów ze zróżnicowaną scenerią, na których żadnych osób jednak nie ma. 
-%TODO z tym wyraźnie odmiennym to byłbym ostrożny  ... %ODP OK
+Stosowane podeście nie powinno odbiegać od klasycznej metodologii uczenia maszynowego -- dysponując zbiorem danych wejściowych, należy dokonać podziału na próbki uczące oraz testowe (w stosunku około 70:30).
+Każdy z~tych podzbiorów (a przede wszystkim uczący) powinien posiadać zarówno obiekty zdefiniowane jako pozytywne, jak i negatywne. 
+W niniejszej pracy, która ma na celu rozpoznanie osoby w postawie stojącej, wymagane będzie użycie obrazów o rozmiarach $128 \times 64$ pikseli, przedstawiających taką postać w jak największej liczbie kombinacji (ale w podobnej skali), lecz także obrazów ze zróżnicowaną scenerią, na których żadnych osób jednak nie ma. 
 Dla poprawienia ostatecznych wyników należy zadbać również o zróżnicowanie obrazów pod kątem poziomu oświetlenia, a nawet tła otaczającego postać.
 Etapem klasyfikacji nazwać można wykorzystanie otrzymanych w procesie uczenia parametrów do wyznaczenia położenia badanego wektora cech względem hiperpłaszczyzny. 
 Na tej podstawie do obiektu zostanie przydzielona odpowiednia klasa.
-
-%TODO przydałoby się równianie SVM z opisem. %ODP niżej
 
 \subsubsection{Uczenie}
 
 Aby detektor mógł działać poprawnie, klasyfikator musi dysponować odpowiednimi parametrami. 
 Uzyskuje się je na etapie uczenia, używając odpowiedniego zestawu danych.
 Wzorując się na pracy Dalala oraz Triggsa, postanowiono skorzystać ze zbioru ponad 5000 obrazów udostępnionych przez twórców. 
-Specyfikacja tego zestawu pozwala nauczyć klasyfikator rozpoznawania osoby na obrazie o wielkości $128\times 64$ pikseli. 
+Specyfikacja tego zestawu pozwala nauczyć klasyfikator rozpoznawania osoby na obrazie o wielkości $128 \times 64$ pikseli. 
 Wysokość przedstawionej osoby, wyrażona w pikselach, powinna oscylować wokół 95 ($\pm$ 5). 
-Zgodnie z przyjętymi metodologiami, zestaw ten zawiera gotowy podział na próbki pozytywne i negatywne, dalej pogrupowane na zestaw uczący oraz testowy w stosunku zbliżonym do 70:30. %TODO uczący/testowy %ODP OK
+Zgodnie z przyjętą metodologią, zestaw ten zawiera gotowy podział na próbki pozytywne i negatywne, dalej pogrupowane na zestaw uczący oraz testowy w stosunku zbliżonym do 70:30. 
 Przykłady przedstawiono na ilustracji:
 
 \begin{figure}[h]
@@ -489,48 +520,54 @@ Przykłady przedstawiono na ilustracji:
 	\caption{Przykłady obrazów ze zbioru wykorzystanego przy uczeniu -- na górze próbki pozytywne, na dole negatywne}
 	\label{fig:HOG_image_examples}
 \end{figure}
-%TODO no ale dlaczego te megatywne mają inne rozmiary ? powinny mieć przecież takie same. I może wiecej przykładów. %ODP rozmiary były inne w bazie INRIA - ale do uczenia/testów wykorzystywało się i tak wycinki 128x64. Dodano więcej przykładów
-Wśród próbek pozytywnych połowa plików to duplikaty odwrócone horyzontalnie. Ma to zapewnić poprawne uwzględnienie cech osób niezależnie od orientacji względem kamery.
+
+Wśród próbek pozytywnych połowa plików to duplikaty odwrócone horyzontalnie. 
+Ma to zapewnić poprawne uwzględnienie cech osób niezależnie od orientacji względem kamery.
 
 \subsubsection{Klasyfikacja}
 \label{sec:klasyfikacja}
 Etap ten jest stosunkowo prosty i stanowi główną zaletę klasyfikatora SVM. 
 Wymaga bowiem wcześniejszego przeprowadzenia etapu uczenia oraz dostarczenia wektora cech klasyfikowanego obiektu. 
-Realizowane jest wówczas równanie:
+Obliczane jest wówczas równanie:
 \begin{equation}
 \label{eq:HOG_classification}
 \left.\begin{aligned} 
 r=\sum_{i=1}^{N}(a_i\cdot l_i)+b,
 \end{aligned}\right.
 \end{equation}
-gdzie $l_i$ to elementy wektora cech, natomiast $a_i$ i $b$ to parametry wyliczone na etapie uczenia. 
+gdzie: $l_i$ to elementy wektora cech, natomiast $a_i$ i $b$ to parametry wyliczone na etapie uczenia. 
 
-W projekcie, proces uczenia i klasyfikacji oparto o funkcje dostępne w środowisku MATLAB, gdzie to równanie jest nieco zmodyfikowane:
+W projekcie, proces uczenia i klasyfikacji oparto o funkcje dostępne w środowisku \mbox{MATLAB}, gdzie to równanie jest nieco zmodyfikowane:
 \begin{equation}
 \label{eq:HOG_classificationMATLAB}
 \left.\begin{aligned} 
 r=-\sum_{i=1}^{N}a_i(l_i+b_i)-c,
 \end{aligned}\right.
 \end{equation}
-gdzie $a$, $b$ oraz $c$ to parametry hiperpłaszczyzny wyliczone na etapie uczenia ($a$ i $b$ - wektory, $c$ - skalar).
+gdzie: $a$, $b$ oraz $c$ to parametry hiperpłaszczyzny wyliczone na etapie uczenia ($a$ i $b$ -- wektory, $c$ -- skalar).
 
-Dla obu przypadków, detekcja wskazuje obiekt jako przynależący klasy jeśli $r>0$, w przeciwnym wypadku go odrzuca.
-%TODO nie podoba mi się a postać równania. Zykle jest inna. suma wagi x wektor cech +b > 0 %ODP opisano nieco więcej na ten temat
+Dla obu przypadków, detekcja wskazuje obiekt jako przynależący klasy jeśli $r>0$, w~przeciwnym wypadku go odrzuca.
 
-\subsection{Detekcja na ramce obrazu}
-%TODO Wcześniej trzeba zaznaczyć, że rozważania dotyczą klasyfikacji próbek z sylwektami/lub bez o rozmiarch np to 128 x 64. %ODP OK
-%TODO A ten rozdział to detekcja na ramce obrazu. %ODP OK
 
-Klasyfikator jest w stanie rozpoznać postać znajdującą się w centrum próbki o rozmiarze $128\times 64$. 
-%TODO druga część zdania niejasne %ODP OK, określono w pierwszej części zdania
+\subsection{Detekcja na ramce sekwencji wideo}
 
-Osiągnięcie dobrych wyników detekcji wymaga zastosowania mechanizmu okna przesuwnego. Dysponując określonym obszarem zainteresowań, algorytm powinien sprawdzić każdą możliwą konfigurację położenia okna $128\times 64$ wewnątrz tego obszaru. Oznaczać to przesuwanie okna o 1 piksel w bok, a po dotarciu do prawej linii o 1 piksel w dół. Takie podejście skutkuje bardzo dużą złożonością obliczeniową - dla obszaru zainteresowań o wymiarach $144\times 96$ i rozpatrywanego okna istnieje 512 możliwości (512 wektorów cech). W praktyce zwiększa się wykonywany krok o kilka lub kilkanaście pikseli.
+Omówiony klasyfikator jest w stanie rozpoznać postać znajdującą się w centrum próbki o~rozmiarze $128 \times 64$ pikseli. 
 
-Metoda HOG+SVM jest mało odporna na zmianę wielkości wykrywanego obiektu na oryginalnym obrazie, a porównując wymiary ramki ($1280\times 720$) z wielkością okna detekcji, może wydawać się to poważnym ograniczeniem. Skutecznym rozwiązaniem okazuje się być zastosowanie algorytmu HOG+SVM na kilku przeskalowanych w różny sposób kopiach obrazu. Z każdej skali należy wydobyć próbki obrazów o wymiarach $128\times 64$ i znaleźć najlepszą pozytywną detekcję. Odpowiadająca wybranemu wynikowi skala da również pośrednią informację o odległości. 
+Wykonie detekcji na obrazie o dowolnym rozmiarze np. $1280 \times 720$ wymaga zastosowania mechanizmu okna przesuwnego. 
+Dysponując określonym obszarem zainteresowań, algorytm powinien sprawdzić każdą możliwą konfigurację położenia okna $128\times 64$ wewnątrz tego obszaru. 
+Przykładowo oznacza to przesuwanie okna o 1 piksel w bok, a po dotarciu do prawej linii -- o 1 piksel w dół.
+Takie podejście skutkuje bardzo dużą złożonością obliczeniową -- dla obszaru zainteresowań o wymiarach $144\times 96$ i rozpatrywanego okna istnieje 512 możliwości (512 wektorów cech). 
+W praktyce zwiększa się wykonywany krok o kilka lub kilkanaście pikseli -- dla obrazu o dość dużej rozdzielczości $1280 \times 720$ jest to akceptowalny poziom pominięcia niektórych szczegółów.
+Przykład realizacji okna przesuwnego jest przedstawiony na rysunku \ref{fig:HOG_mesh}.
+%TODO 2 może tu odnieść to do tego 1280 x 720 %ODP OK
 
-Metodyka detekcji w wielu skala stanowi dobrą odpowiedź na jedno z założeń systemu, mówiące o konieczności określenia odległości kamery od rozpoznanej osoby, by poprzez odpowiednie sterowanie utrzymać zadany dystans.  %TODO z tym kierunkiem ? -> niejasne %ODP OK
+%TODO 2 Może jednak rysunek poglądaowy jak to okno działa. %ODP OK
 
-Opisują to rysunki \ref{fig:HOG_scaling}. %TODO Ilustrują i nie poniżej tylko \ref %ODP OK
+Metoda HOG+SVM jest mało odporna na zmianę wielkości wykrywanego obiektu na oryginalnym obrazie, a porównując wymiary ramki ($1280\times 720$) z wielkością okna detekcji, może wydawać się to poważnym ograniczeniem. 
+Skutecznym rozwiązaniem okazuje się być zastosowanie algorytmu HOG+SVM na kilku kopiach obrazu z różnym współczynnikiem skalowania. %TODO 2 to w rózny sposób sugeruje, że innym algorytmem.... a to nie o to chodzi. %ODP OK
+Metodyka detekcji w wielu skalach stanowi dobrą odpowiedź na jedno z założeń systemu, mówiące o konieczności określenia odległości kamery od rozpoznanej osoby, by poprzez odpowiednie sterowanie utrzymać zadany dystans.  %TODO z tym kierunkiem ? -> niejasne %ODP OK
+Z każdej skali należy wydobyć próbki obrazów o wymiarach $128\times 64$ i znaleźć najlepszą pozytywną detekcję. 
+Opisują to rysunki \ref{fig:HOG_scaling}. 
 \begin{figure}[h]
 	\centering
 	\captionsetup{justification=centering,margin=1cm}
@@ -539,22 +576,22 @@ Opisują to rysunki \ref{fig:HOG_scaling}. %TODO Ilustrują i nie poniżej tylko
 	\caption{Skalowanie 1:1, 1:2 oraz 1:4 z naniesionym przykładowym oknem detekcji $128 \times 64$}
 	\label{fig:HOG_scaling}
 \end{figure}
-\newline
 
-Stała wielkość okna detekcji każe wnioskować, że osoba wykryta na oryginalnym obrazie byłaby znacząco oddalona od kamery. W przypadku przedstawionym na rysunku, klasyfikator prawdopodobnie rozpozna postać na oknie detekcji z obrazu przeskalowanego w stosunku 1:4. %TODO styl. to nie okno rozpoznaje... %ODP OK
-Znając przybliżoną odległość pomiędzy kamerą oraz osobą wykrywaną przez takie okno na oryginalnym obrazie i stosując proste twierdzenie Talesa, można oszacować jej rzeczywistą odległość dla pozytywnej detekcji w jednej ze skal. Opisuje to poniższy wzór:
+Po zakończeniu klasyfikacji dla wszystkich skal następuje grupowanie wyników -- w efekcie wyłaniane jest najlepiej sklasyfikowane okno i określana jest jego pozycja na oryginalnym obrazie. 
+W~przypadku przedstawionym na rysunku, klasyfikator prawdopodobnie rozpozna postać na oknie detekcji z obrazu przeskalowanego w stosunku 1:4. Stała wielkość okna detekcji $128\times 64$ każe wnioskować, że osoba wykryta na oryginalnym obrazie mogłaby być znacząco oddalona od kamery. Znając przybliżoną odległość pomiędzy kamerą tak wykrytą osobą i stosując proste twierdzenie Talesa, można oszacować jej rzeczywistą odległość dla pozytywnej detekcji w jednej ze skal. 
+Opisuje to poniższy wzór:
 \begin{equation}
 \label{eq:scaling}
 d_r=\frac{d_o}{s_c},
 \end{equation}
-gdzie $d_r$ to aktualna odległość pomiędzy osobą i kamerą , $d_o$ to odległość do wykrytej osoby na obrazie oryginalnym (zmierzona), a $s_c$ to skala obrazu (w postaci ułamkowej), w którym okno detekcji uzyskało najlepszy wynik.
+gdzie: $d_r$ to aktualna odległość pomiędzy osobą i kamerą , $d_o$ to odległość do wykrytej osoby na obrazie oryginalnym (zmierzona), a $s_c$ to skala obrazu (w postaci ułamkowej), w którym okno detekcji uzyskało najlepszy wynik.
 
-%TODO co jest rozumiene przez odległość ? %ODP wyjaśniono
-
+Szczegóły realizacji algorytmu opisano w podrozdziale \ref{HOG_SVM_realization}.
 
 
 %TODO tu komplemetnie brakuje  opisu jak działa tzw. okno przesuwne.  Same skale też można lepiej opisać. %ODP Dodano opis, w rozdziale o implementacji jest o tym więcej napisane
 %TODO Kolejna sprawa to tzw. grupowienie detekcji z wielu skal. %ODP to mam opisane w implementacji 
 
-%TODO rozdziały o klasyfikacji i uczeniu połączyć z SVM, a to przetwarzanie dla cłąej ramk na końcu. %ODP OK
 
+
+%TODO 2 skoro tak to napisać, że szczegóły pzredstawiono w jakimś tam rozdziale. A o tym grupowaniu to chociaż wspomnieć i \ref %ODP OK

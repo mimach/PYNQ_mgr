@@ -1,21 +1,21 @@
 \chapter{Implementacja modelu programowego}
-%TODO Jak już opisze Pan na początku koncpecję to będzie to jasne. Tu trzeba się do tego odwołać. Bo w tej postaci to to wygląda tak, że sobie Pan to po prostu rozaważa... %ODP OK
+
 
 Pierwszym etapem weryfikującym poprawność przedstawionej koncepcji było stworzenie modeli programowych algorytmów MeanShift oraz Hog+SVM, bez warstwy nadzorującej/sterującej dronem. 
 Wybrano środowisko MATLAB ze względu na jego powszechne zastosowanie w branży naukowej/inżynierskiej, co skutkuje olbrzymią bazą bibliotek i materiałów pomocniczych. 
-W tym przypadku MATLAB ułatwia pracę na obrazach lub sekwencjach wideo poprzez: wczytywanie materiału, wyświetlanie, dostęp do poszczególnych klatek oraz zapewnia wiele wbudowanych funkcji, m.in. do konwersji określonych przestrzeni barw oraz klasyfikacji z wykorzystaniem maszyny wektorów nośnych. %TODO może klasyfikacji z wykorzystaniem %ODP OK
+W tym przypadku MATLAB ułatwia pracę na obrazach lub sekwencjach wideo poprzez: wczytywanie materiału, wyświetlanie, dostęp do poszczególnych klatek oraz zapewnia wiele wbudowanych funkcji, m.in. do konwersji określonych przestrzeni barw oraz klasyfikacji z wykorzystaniem maszyny wektorów nośnych. 
 
-\section{Model MeanShift}
+\section{Model algorytmu  MeanShift}
 
-Skrypt rozpoczyna działanie od wyznaczenia jądra obszaru o wymiarach $100 \times 100$ (zgodnie ze schematem \ref{fig:kernel_build}) oraz jego gradientów. %TODO tu by się przydały odnośniki do stosowanych wzorów.
+Skrypt rozpoczyna działanie od wyznaczenia jądra obszaru \eqref{eq:ms3} o wymiarach $100 \times 100$ (zgodnie ze schematem \ref{fig:kernel_build}) oraz jego gradientów. %TODO tu by się przydały odnośniki do stosowanych wzorów. %TODO 2 nie dodał Pan %ODP OK
 Po tym następuje właściwa część algorytmu, która pracuje na wczytanym materiale wideo, przekonwertowanym do przestrzeni HSV. 
-Obszarem śledzonym jest kwadrat $100\times 100$, który dla pierwszej klatki obrazu jest zlokalizowany w miejscu obecności śledzonego obiektu. %TODO co to jest miejsce startowe ??? %ODP OK
-Dla tego fragmentu obliczany jest histogram barw. 
-Następnie, dla kolejnych klatek, obliczany jest histogram kandydatów ostatecznie zestawiając go z oryginalnym i wyznaczając przesunięcie w pionie i poziomie. %TODO styl. Następnie, dla kolenych klatek, obliczane.... %ODP OK
+Obszarem śledzonym jest kwadrat $100 \times 100$, który dla pierwszej klatki obrazu jest zlokalizowany w miejscu obecności śledzonego obiektu. 
+Dla tego fragmentu obliczany jest histogram barw wzorca. 
+Następnie, dla kolejnych klatek, obliczany jest histogram kandydata. Na podstawie dwóch takich zestawów danych obliczany jest wektor MeanShift, czyli przemieszczenie maksymalizujące wartość funkcji podobieństwa obu obszarów. %TODO 2 dalej średni styl. %ODP OK
 Dla każdej z klatek operacja ta jest przeprowadzana 10 razy, poprawiając precyzję ostatecznego przesunięcia. 
-Przed rozpoczęciem przetwarzania kolejnej klatki, następuje aktualizacja pozycji śledzonego obszaru. %TODO Obszaru ? %ODP OK
-Po wykonaniu algorytmu dla zdefiniowanej liczbie klatek, skrypt wyświetla film w oryginalnych barwach RGB z dorysowaną czerwoną ramką otaczającą śledzony obszar, co pozwala wizualnie sprawdzić poprawność działania całego kodu. 
-Niestety, czas wykonania tej symulacji jest nieporównywalnie dłuższy od rzeczywistego trwania sekwencji i, przykładowo, na komputerze wyposażonym w procesor klasy i7 materiał o długości 685 klatek (ok. 11 sekund filmu) jest przetwarzany w czasie ok. 100 sekund.
+Przed rozpoczęciem przetwarzania kolejnej klatki, następuje aktualizacja pozycji śledzonego obszaru. 
+Po wykonaniu algorytmu dla zdefiniowanej liczby klatek, skrypt wyświetla film w oryginalnych barwach RGB z dorysowaną czerwoną ramką otaczającą śledzony obszar, co pozwala wizualnie sprawdzić poprawność działania całego kodu. 
+Niestety, czas wykonania tej symulacji jest nieporównywalnie dłuższy od rzeczywistego trwania sekwencji i, przykładowo, na komputerze wyposażonym w~procesor klasy i7 materiał o długości 685 klatek (ok. 11 sekund filmu) jest przetwarzany w~czasie ok. 100 sekund.
 
 Rysunek \ref{fig:meanshift_prog} przedstawia śledzenie obiektu w postaci czerwonej koszulki z ciemnym poziomym paskiem. Kolejne zrzuty są realizowane z odstępem 100 klatek. Zauważyć można poprawne działanie algorytmu nawet pomimo zmiany odległości obiektu od kamery.
  
@@ -26,32 +26,31 @@ Rysunek \ref{fig:meanshift_prog} przedstawia śledzenie obiektu w postaci czerwo
 	\label{fig:meanshift_prog}
 \end{figure}
 
-%TODO 1. Obarzki mniejsze, a za to prostokąt wyraźniejszy. %ODP OK
-%TODO 2. Jakieś inny test %ODP dodano w tej samej grafice
-%TODO 3. Komentarz nt. działania algorymtu.
 
-\section{Model HoG+SVM}
+\section{Model algorytmu HoG+SVM}
 
-
-Głównym zadaniem modelu programowego jest próba detekcji osoby w przeskalowanym obrazie, w oparciu o obszar zainteresowań $144 \times 96$, którego środek stanowi punkt wybrany przez użytkownika. Podstawowym zadaniem jest jednak proces uczenia klasyfikatora SVM, który zostanie użyty nie tylko w modelu programowym, ale również w trakcie implementacji sprzętowej. %TODO Niejasne %ODP OK
+Funkcję modelu programowego można podzielić na dwa zadania. Pierwszym jest proces uczenia klasyfikatora SVM, którego współczynniki zostaną użyte nie tylko w drugiej części, ale również w trakcie implementacji sprzętowej. 
+Drugim zadaniem jest realizacja detekcji osoby na wielu skalach obrazu wejściowego, w oparciu o wskazany przez użytkownika punkt środkowy obszaru zainteresowań.
+ 
+%TODO 2 te dwa zdanie dalej nie jasne - proszę to jakoś przeredagować. Też niejasna gezena rozmiaru tego okna... %ODP OK poprawiono, wcześniej model wykonywał detekcję na jednej wybranej skali, ostatnio to zintegrowano
 
 \subsection{Uczenie}
-Uczenie jest dość złożonym obliczeniowo procesem przetworzenia obrazów i ekstrakcji wektorów cech, na podstawie których powstanie płaszczyzna rozdzielająca próbki pozytywne od negatywnych. %TODO to żmudny to nie pasuje styl. %ODP OK
+Uczenie jest dość złożonym obliczeniowo procesem przetworzenia obrazów i ekstrakcji wektorów cech, na podstawie których powstanie płaszczyzna rozdzielająca próbki pozytywne od negatywnych. 
 Przejście przez tak wielką liczbę obrazów ma charakter jednorazowy, po którym będzie dysponować się parametrami umożliwiającymi klasyfikację. 
-Z tego względu nie zdecydowano się na implementację modułu uczącego w układzie FPGA -- tak ze względu na złożoność tego etapu, czas trwania procedury, jak i prawdopodobnie duży udział modułu w zużyciu zasobów logiki. 
+Z tego względu nie zdecydowano się na implementację modułu uczącego w układzie FPGA -- tak ze względu na złożoność tego etapu, czas trwania procedury, jak i prawdopodobnie duży udział modułu w~zużyciu zasobów logiki. 
 
 Wybór padł na środowisko MATLAB dysponujące funkcjami wspierającymi metodę SVM. 
 Skrypt korzysta z plików tekstowych zawierających listy próbek do wczytania, które ostatecznie muszą być w rozmiarze $128\times 64$. 
 Wymiary próbek negatywnych mocno odbiegają od założonego wymiaru klasyfikowanego obrazu ($128\times 64$). 
-Zdecydowano, iż w ich przypadku uczeniu poddany będzie obszar o wymiarach $128\times 64$ wycięty ze środka oryginałów. %TODO dlaczego raz jest 128x64 a kiedy indziej w $$. %ODP OK, nie wypatrzyłem tego. 
-Proces tworzenia wektorów cech przeprowadzono zgodnie z informacjami zawartymi w rozdziale \ref{sec:HOG&SVM}; za normę blokową obrano L2 (\eqref{eq:HOG_norm3}).
+Zdecydowano, iż w ich przypadku uczeniu poddany będzie obszar o wymiarach $128\times 64$ wycięty ze środka oryginałów. 
+Proces tworzenia wektorów cech przeprowadzono zgodnie z informacjami zawartymi w rozdziale \ref{sec:HOG&SVM}; za normę blokową obrano L2 \eqref{eq:HOG_norm3}.
 Na bazie tak przygotowanych próbek powstaje tablica deskryptorów oraz druga, która przechowuje odpowiadające im wartości klas (1 lub 0). 
-Z obu tablic korzysta dostępna w pakiecie Matlab funkcja \textit{svmtrain}, która zwraca strukturę \textit{svm\char`_struct} ze współczynnikami wykorzystywanymi w klasyfikacji. %TODO czego ? %ODP OK
-Z kolei funkcja \textit{svmclassify} służy do klasyfikacji obrazu (a właściwie jego deskryptora). %TODO "w stanie" styl, personifikacja %ODP OK
-Funkcję tę użyto w procesie testowania niezależnego zestawu danych złożonego z poprawnie sklasyfikowanych obrazów, by sprawdzić skuteczność klasyfikacji wyuczonego SVM. %TODO niejasne... raczej suteczność klasyfikiacji wyuczonego SVM. %ODP OK
-Etap testowania jest dodatkowo przydatny -- pozwala na bazie eksperymentów zdefiniować optymalny rozmiar komórki (kwadratu pikseli), na bazie których liczony jest pojedynczy histogram. 
+Z obu tablic korzysta dostępna w pakiecie MATLAB funkcja \textit{svmtrain}, która zwraca strukturę \textit{svm\char`_struct} ze współczynnikami wykorzystywanymi w klasyfikacji. 
+Z kolei funkcja \textit{svmclassify} służy do klasyfikacji obrazu (a właściwie jego deskryptora). 
+Funkcję tę użyto w procesie testowania niezależnego zestawu danych złożonego z manualnie sklasyfikowanych obrazów, by sprawdzić skuteczność klasyfikacji wyuczonego SVM. %TODO 2 poprawnie, czy manulanie ? tzn. nie rozmiem do czego się to poprawnie odnosi %ODP racja, manualnie to lepsze słowo
+Etap testowania jest dodatkowo przydatny -- pozwala eksperymentalnie zdefiniować optymalny rozmiar komórki (kwadratu pikseli), na bazie których liczony jest pojedynczy histogram. 
 Tabela \ref{tab:HOG_cell_size} prezentuje wyniki, wśród których uwzględniony jest błąd, liczony jako stosunek liczby niepoprawnych klasyfikacji (0 zamiast i 1 zamiast 0) do liczby testowanych obrazów.
-Eksperyment przeprowadzono na komputerze wyposażonym w procesor Intela klasy i7, trzeciej generacji.
+Eksperyment przeprowadzono na komputerze wyposażonym w procesor Intel klasy i7, trzeciej generacji.
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 \begin{table}[h]
 	\centering
@@ -73,45 +72,40 @@ Eksperyment przeprowadzono na komputerze wyposażonym w procesor Intela klasy i7
 	\caption{Skuteczność algorytmu na zbiorze testowym w zależności od wielkości pojedynczej komórki}
 	\label{tab:HOG_cell_size}
 \end{table}
-%TODO czas trwania obliczeń. %ODP OK
-%TODO jak jest liczony bład %ODP OK, nad tabelą
 
-Okazuje się, że algorytm wykazuje największą skuteczność dla komórek o rozmiarze $4\times 4$. 
+Okazuje się, że algorytm wykazuje największą skuteczność dla komórek o rozmiarze $4\times~4$. 
 Zdecydowano się zatem na implementację algorytmu HOG w układzie FPGA właśnie dla tej wartości parametru. 
 Szybkie obliczenia pokazują, że dla obrazu o wymiarach $128\times 64$ powstanie $32\times 16$ komórek, a idąc dalej, $31\times 15$ bloków po 4 histogramy po 9 wartości -- długość wektora cech będzie wynosić 16740. 
-Oznacza to również, że po zakończonym procesie uczenia powstanie wektor współczynników o takiej długości. %TODO no chybo nie do końca, bo normalizacja w blokach zwiększa ten rozmiar. %ODP Mógłby Pan Doktor wyjaśnić? Ja po prostu dzielę 36 wartości danego bloku przez ich sumę+'1'. Więc wyjściem jest nadal 36 elementów na blok.
+Oznacza to również, że po zakończonym procesie uczenia powstanie wektor współczynników o takiej długości.
 
-%TODO To co jest od "Uczenie" do tego momentu przenieść i zintegrować z opisem \section{Model HoG+SVM} %ODP OK
-
-
-%TODO proszę to jednak podzielić osobno na uczenie i rozpoznawanie. %ODP OK
 
 %Działanie skryptu rozpoczyna się od przeprowadzenia uczenia klasyfikatora, która bazuje na dwóch tablicach: jedna agreguje wektory cech, a druga przechowuje skojarzone z nimi klasy (0 lub 1). 
 %Wykorzystywana baza obrazów wyposażona jest w pliki z ich listami (osobno dla pozytywnych i negatywnych przykładów), co umożliwia proste wczytywanie kolejnych próbek. 
 %Oczekuje się tu rozmiaru $128\times 64$ pikseli, jednak niektóre (zwłaszcza negatywne) obrazy są za duże -- przeprowadza się tutaj wycięcie fragmentu o podanym wyżej rozmiarze ze środka każdej próbki. Kolejnymi etapami dla takiego obszaru są kolejno: konwersja do odcieni szarości oraz obliczenie wektora cech. 
- %TODO styl. potrzeby.. niepotrzebnie %ODP OK
+
 
 \subsection{Rozpoznawanie}
-Po uzyskaniu struktury ze współczynnikami można podjąć się klasyfikacji obszarów z obrazów wczytanych przez użytkownika.
 
+Po uzyskaniu struktury ze współczynnikami możliwa jest klasyfikacja obszarów z obrazów wczytanych przez użytkownika.
 Napisany w tym celu skrypt rozpoczyna działanie od wczytania obrazu wejściowego. 
-Po zdefiniowaniu punktu będącego środkiem obszaru zainteresowań następuje realizacja algorytmu HOG+SVM dla każdej z 5 zdefiniowanych wcześniej skal.
-Pierwszym krokiem jest obliczenie $5\times 9$ wektorów cech na fragmencie $144 \times 96$ -- celem jest znalezienie jak najlepszego wyniku detekcji.  %TODO niejasne, i styl z "planu".  %ODP OK
-%TODO Czy to jest tylko w jednej skali licznone ? %ODP Nie, dla wielu - wyświetlany jest najlepszy wynik - wyświetlanie wszystkich wyników poniżej 0 wygląda dość nieczytelnie
-Idąc za przykładem wbudowanej w MATLAB funkcji \textit{svmclassify}, następuje klasyfikacja każdego obliczonego wektora cech. Proces ten jest powtarzany dla każdej z wcześniej określonych skal. 
-Końcowym etapem jest wyświetlenie oryginalnego obrazu w kolorze, z naniesionymi konturami: obszarów zainteresowań $144\times 96$, oraz pozytywnych detekcji o wymiarach $128\times 64$ -- przeskalowanych do rzeczywistego rozmiaru. Finalna detekcja jest obliczana na podstawie najlepszego (najniższego) wyniku klasyfikacji z zebranych wyników analiz wszystkich skal.
+Po zdefiniowaniu punktu będącego środkiem obszaru zainteresowań następuje realizacja algorytmu HOG+SVM dla każdej z 5 zdefiniowanych wcześniej skal. Wielkość obszaru zainteresowań określono na podstawie potrzeb i możliwości związanych z~implementacją sprzętową - dla każdej ze skal ma on rozmiar $144 \times 96$.
+Pierwszym krokiem jest obliczenie $5\times 9$ wektorów cech na fragmencie $144 \times 96$ -- celem jest znalezienie jak najlepszego wyniku detekcji.  %TODO 2 - jak Pan wczesniej napisze dlaczego akturat taki rozmiar tego ROI to będzie OK, bo tak to jest niejasne. %ODP OK, zdanie wyżej
+Wykorzystując strukturę ze współczynnikami i wzór \ref{eq:HOG_classificationMATLAB}, następuje klasyfikacja każdego obliczonego wektora cech. %TODO 2 dlaczego "idąc za przykładem" ? %ODP poprawiono
+Proces ten jest powtarzany dla każdej z wcześniej określonych skal. 
+Końcowym etapem jest wyświetlenie oryginalnego obrazu w kolorze, z naniesionymi konturami: obszarów zainteresowań $144\times 96$ oraz pozytywnych detekcji o~wymiarach $128\times 64$ -- przeskalowanych do rzeczywistego rozmiaru. 
+Finalna detekcja jest obliczana na podstawie najlepszego (najniższego) wyniku klasyfikacji z zebranych wyników analiz wszystkich skal.
 
 Przykłady detekcji w pojedynczych skalach zaprezentowano na rysunkach \ref{fig:SVMmodel}, \ref{fig:SVMmodel_2_5} oraz \ref{fig:SVMmodel_3}.
-Różowym konturem oznaczono okno detekcji $144 \times 96$, natomiast na czerwono zakreślono ostateczne obszary $128\times 64$ pozytywnie wybrane przez klasyfikator. Przedstawiono również tabele z wynikami klasyfikacji poszczególnych deskryptorów. Pogrubione zostały pozytywne wyniki detekcji.%TODO ale trzeba napisać co to za wyniki. %ODP OK
-\begin{figure}[]
+Różowym konturem oznaczono okno detekcji $144 \times 96$, natomiast na czerwono zakreślono ostateczne obszary $128\times 64$ pozytywnie wybrane przez klasyfikator. Przedstawiono również tabele z wynikami klasyfikacji poszczególnych deskryptorów. Pogrubione zostały pozytywne wyniki detekcji.
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=10cm]{3_SVM_model.jpg}
+	\includegraphics[width=12cm]{3_SVM_model.jpg}
 	\caption{Detekcja na oknie wewnątrz obrazu (skala: 5)}
 	\label{fig:SVMmodel}
 \end{figure}
 
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
-\begin{table}[]
+\begin{table}[h]
 	\centering
 	\caption{Tabela z wynikami dla $5 \times 9$ detekcji z rysunku \ref{fig:SVMmodel}}
 	\begin{tabular}{|P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |}
@@ -126,7 +120,7 @@ $1.2971$ &   $2.0113$  &  $1.2289$  & $\textbf{-0.0191}$  & $\textbf{-0.5477}$  
 	\label{tab:scale_window_cover_5}
 \end{table}
 
-\begin{figure}[h]
+\begin{figure}[!]
 	\centering
 	\includegraphics[width=12cm]{3_SVM_model_2_5.jpg}
 	\caption{Detekcja na oknie wewnątrz obrazu (skala: 2.5)}
@@ -134,7 +128,7 @@ $1.2971$ &   $2.0113$  &  $1.2289$  & $\textbf{-0.0191}$  & $\textbf{-0.5477}$  
 \end{figure}
 
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
-\begin{table}[h]
+\begin{table}[!]
 	\centering
 	\caption{Tabela z wynikami dla $5 \times 9$ detekcji z rysunku \ref{fig:SVMmodel_2_5}}
 	\begin{tabular}{|P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |}
@@ -149,7 +143,7 @@ $2.6806$  &  $2.4200$  &  $2.2032$ & $1.6812$  & $1.9216$ &  $0.9355$  & $\textb
 	\label{tab:scale_window_cover_2_5}
 \end{table}
 
-\begin{figure}[h]
+\begin{figure}[!]
 	\centering
 	\includegraphics[width=12cm]{3_SVM_model_3.jpg}
 	\caption{Detekcja na oknie wewnątrz obrazu (skala: 3)}
@@ -158,7 +152,7 @@ $2.6806$  &  $2.4200$  &  $2.2032$ & $1.6812$  & $1.9216$ &  $0.9355$  & $\textb
 
 
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
-\begin{table}[h]
+\begin{table}[!]
 	\centering
 	\caption{Tabela z wynikami dla $5 \times 9$ detekcji z rysunku \ref{fig:SVMmodel_3}}
 	\begin{tabular}{|P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |P{1.2cm} |}
@@ -172,8 +166,17 @@ $1.4874$  &  $1.8153$  &  $1.0768$  &  $1.2884$  &  $1.0186$  &  $1.8310$  &  $0
 	\label{tab:scale_window_cover_3}
 \end{table}
 
-Następnie wykonano eksperyment pozwalający potwierdzić działanie detekcji dla implementowanych sprzętowo skal: $2/2.5/3/3.5/4$. W tym celu nagrano sekwencję wideo, która przedstawia postać zbliżającą się w stronę kamery z odległości ok. $10$m. W oparciu o nią uruchomiono skrypt realizujący detekcję na wielu skalach, który zaznacza na ramkach obrazu wszystkie obszary zainteresowań oraz najlepsze okno detekcji. Wyniki przedstawia rysunek \ref{fig:SVMmodel_dist}. Dla obu detekcji z pierwszego rzędu, najlepsze wyniki osiągnięto na obszarze w skali równej $2$. Należy zwrócić uwagę, że ze względu na brak uwzględnienia mniejszych skal w teście, na obrazie przeskalowanym ze współczynnikiem $2$ może zostać wykryta osoba o małych rozmiarach względem okna detekcji (przypadek w lewym górnym rogu rysunku). Rzędy drugi oraz trzeci przedstawiają poprawnie wykrytą postać w pozostałych skalach: odpowiednio $2.5/3/3.5/4$. \newline
-Eksperyment posłużył również do oszacowania odległości postaci od kamery, które należałoby przyporządkować detekcjom w poszczególnych skalach. Na podstawie minimalnej i maksymalnej odległości osoby od kamery w sekwencji wideo (ok. $2m-10$m) można oszacować, że detekcja w skali $4$ odpowiada odległości ok. $2$m, natomiast każda kolejna skala powiększa tę wartość o ok. $1-1.5$m, aż do odległości ok. $7m$ dla detekcji w skali $2$. Tak jak wspomniano wcześniej, w skali tej wykrywana jest również dalej stojąca osoba (nawet $10$m), choć nie jest to regułą.
+Następnie wykonano eksperyment pozwalający potwierdzić działanie detekcji dla implementowanych sprzętowo skal: $2/2.5/3/3.5/4$. 
+W tym celu nagrano sekwencję wideo, która przedstawia postać zbliżającą się w stronę kamery z odległości ok. $10$m. 
+Skrypt z wczytanym materiałem wideo realizuje detekcję na wielu skalach i zaznacza na ramkach obrazu wszystkie obszary zainteresowań oraz najlepsze okno detekcji. %TODO 2 to "w oparciu" średnie... %ODP OK
+Wyniki przedstawia rysunek \ref{fig:SVMmodel_dist}. 
+Dla obu detekcji z pierwszego rzędu, najlepsze wyniki osiągnięto na obszarze w skali równej $2$. 
+Należy zwrócić uwagę, że ze względu na brak uwzględnienia mniejszych skal w teście, na obrazie przeskalowanym ze współczynnikiem $2$ może zostać wykryta osoba o małych rozmiarach względem okna detekcji (przypadek w lewym górnym rogu rysunku). 
+Rzędy drugi oraz trzeci przedstawiają poprawnie wykrytą postać w pozostałych skalach: odpowiednio $2.5/3/3.5/4$. 
+
+Eksperyment posłużył również do oszacowania odległości postaci od kamery, które należałoby przyporządkować detekcjom w poszczególnych skalach. 
+Na podstawie minimalnej i maksymalnej odległości osoby od kamery w sekwencji wideo (ok. $2m-10$m) można oszacować, że detekcja w skali $4$ odpowiada odległości ok. $2$m, natomiast każda kolejna skala powiększa tę wartość o ok. $1-1.5$m, aż do odległości ok. $7m$ dla detekcji w skali $2$. 
+Tak jak wspomniano wcześniej, w skali tej wykrywana jest również dalej stojąca osoba (nawet $10$m), choć nie jest to regułą.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=15cm]{HOG_scale_all.jpg}
@@ -181,8 +184,3 @@ Eksperyment posłużył również do oszacowania odległości postaci od kamery,
 	\label{fig:SVMmodel_dist}
 \end{figure}
 
-%TODO Czy w jakiś sposób obliczena jest finalna detekcja ? Oraz jak to się przekłada na odległosć. %ODP opisano wyżej jak jest liczona
-%TODO Dobrze by było jeszcze zamieścić taki eksperytment - sekwencja na której Pan oddala się od kamery i korespondujące odległości. %ODP Dodano
-%TODO Nie wiem czy nie warto rozważyć przetwarzania w więcej niż jednej skali.... albo wszystkich albo przynajmniej sąsiednich (pamiętając tą najlepszą). %ODP Tak robiłem, ale wizualnie to nie ma sensu, bo jest zbyt wiele detekcji i obraz staje się nieczytelny
-
-%TODO BTW, Na takiej sekwencji można też od razu sprawdzić działanie meanshifta. Albo nagrać jeszcze taką gdzie oprócz do przodu idzie się w lewo i prawo... %ODP Nie mam modelu programowego łączącego oba algorytmy, nie wyrobiłem czasowo żeby go połączyć

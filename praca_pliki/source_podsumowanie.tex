@@ -3,29 +3,33 @@
 W zrealizowanym projekcie przedstawiono sprzętową-programową realizację detekcji i śledzenia osoby w heterogenicznym układzie Zynq SoC, na potrzeby kontroli bezzałogowego statku powietrznego. 
 Osiągnięto przetwarzanie obrazu o rozdzielczości $1280\times 720$ dla 60 klatek na sekundę, z częstotliwością \textit{60Hz} i \textit{30Hz} odpowiednio dla algorytmów MeanShift oraz HOG+SVM.
 
-Na szczególną uwagę zasługuje warstwa najwyższa, łącząca pracę obu algorytmów i komunikująca się z autopilotem Pixhawk. Zaimplementowano w niej mechanizmy realizujące ważną z punktu widzenia autonomizacji rolę decyzyjną, a wykorzystanie protokołu MAVLink zapewniło komunikację umożliwiającą ruch platformy UAV bez udziału pilota i ograniczyło zaangażowanie użytkownika do włączenia misji i jej zakończenia.
+Na szczególną uwagę zasługuje warstwa najwyższa, łącząca pracę obu algorytmów i komunikująca się z autopilotem Pixhawk. 
+Zaimplementowano w niej mechanizmy realizujące ważną z punktu widzenia autonomizacji rolę decyzyjną, a wykorzystanie protokołu MAVLink zapewniło komunikację umożliwiającą ruch platformy UAV bez udziału pilota i ograniczyło zaangażowanie użytkownika do włączenia misji i jej zakończenia.
 
-Zastosowany w pracy układ Zynq SoC okazał się być wydajną jednostką obliczeniową, która jest w stanie sprostać wymagającym założeniom projektu, a jej zróżnicowana architektura w postaci części PS oraz PL pozwala w najlepszy sposób wykorzystać korzyści wynikające z realizacji sprzętowej i programowej algorytmów.
+Zastosowany w pracy układ Zynq SoC okazał się być wydajną jednostką obliczeniową, która jest w stanie sprostać wymagającym założeniom projektu, a~jej zróżnicowana architektura w postaci części PS oraz PL pozwala w najlepszy sposób wykorzystać korzyści wynikające z~realizacji sprzętowej i programowej algorytmów.
 
 Niemniej ważny okazał się dobór komponentów do budowy drona. Był on przedmiotem wielu analiz (również finansowych), a w efekcie otrzymano wartościową konstrukcję, stanowiącą platformę dla przyszłych badań w SKN AVADER.
 
-%Protokół MAVLink oraz oprogramowanie ArduCopter stanowią dowód na to, że niekomercyjne projekty są zaskakująco dobrą alternatywą dla rozwiązań płatnych.
+Z projektem związanych jest kilka aspektów, których rozpatrzenie mogłyby wpłynąć na poprawienie niezawodności systemu. 
+Jednym z nich mogłaby być próba zredukowania liczby fałszywych detekcji (HoG+SVM) poprzez zmianę wielkości bloków lub komórek. 
+Innym pomysłem mogłoby być proste zwiększenie liczby analizowanych skal. 
+Kolejnym, równie ważnym pomysłem, mogłoby być udoskonalenie procedury uczenia klasyfikatora. Ponadto, obecny w projekcie zestaw współczynników SVM mógłby zostać przekonwertowany do klasycznej postaci (złożonej ze 16740 współczynników oraz przesunięcia), obniżając poziom wykorzystania pamięci BRAM.
 
-%TODO jeszcze o budowie. Ogólnie nieco obszerniej by to można opisać. %ODP OK
+Kolejnym usprawnieniem, związanym z algorytmem MeanShift, byłoby zlikwidowanie rzadkich sytuacji utraty zbieżności ze śledzonym obszarem -- co skutkuje „wędrowaniem okna”. 
+Najczęściej ma na to wpływ nierównomierny i zmienny poziom oświetlenia sceny, co można byłoby korygować odpowiednim przetwarzaniem wstępnym. 
 
-%Autor uważa jednak, że bazując na testowanej konfiguracji sprzętowo-programowej można dokonać szeregu usprawnień, podnoszących ogólną niezawodność rozwiązania. %TODO to jednak tu nie pasuje %ODP OK
+W warstwie najwyższej poprawie mógłby ulec zaimplementowany regulator --  w tym wypadku nie chodzi tylko o lepszy sposób wyliczenia wartości sterujących, ale nawet o częstotliwość, z jaką są one wysyłane do autopilota. Biorąc pod uwagę specyfikę platformy UAV, wymaga to podejścia głównie empirycznego. 
 
-Z projektem związanych jest kilka aspektów, których rozpatrzenie mogłyby wpłynąć na poprawienie niezawodności systemu. Jednym z nich mogłaby być próba zredukowania liczby fałszywych detekcji (HoG+SVM) poprzez zmianę wielkości bloków lub komórek. %TODO no właśnie, jakoś Pan to testował ? Bo chyba tego tam nie ma. %ODP testowałem w modelu programowym
-Innym pomysłem mogłoby być proste zwiększenie liczby analizowanych skal. Ostatnim, równie ważnym, mogłoby być udoskonalenie procedury uczenia klasyfikatora.%TODO liczby ? %ODP OK
-Kolejnym usprawnieniem, związanym z algorytmem MeanShift, byłoby zlikwidowanie rzadkich sytuacji utraty zbieżności ze śledzonym obszarem -- co skutkuje „wędrowaniem okna”. Najczęściej ma na to wpływ nierównomierny i zmienny poziom oświetlenia sceny, co można byłoby korygować wstępnym przetwarzaniem. %TODO wie Pan dlaczego ? %ODP OK
 Barierą na drodze większości zmian jest liczba dostępnych zasobów w układzie -- wymagana byłaby zmiana układu na dysponujący zwłaszcza większą liczbą bloków BRAM. 
 Istnieją jednak zmiany niewymagające ingerencji w kod. 
-Do podstawowych należałby lepszy dobór ustawień programowych kamery w celu poprawy rejestrowanych kolorów. Urządzenia sportowe tego typu są wyposażone w wiele usprawnień (tryb nocny, rektyfikacja,itp.), należy zatem zbadać wpływ ich zastosowania na działanie systemu wizyjnego. %TODO to jest niejasne, a ważne %ODP OK
-Kolejną mogłaby być lepsza stabilizacja obrazu - ze względu na podpięty do kamery dość sztywny przewód HDMI zmienia się jej środek ciężkości, co zaburza pracę gimbala - silnik związany ze stabilizacją na jednej osi obrotu musiał być z tego powodu wyłączony. %TODO szczegóły %ODP OK
-Ostatnią zmianą, mającą największy wpływ na śledzenie, byłoby poprawienie właściwości lotnych drona. Mowa tu głównie o problemach z płynnością ruchu oraz utrzymywaniem drona w zadanej pozycji - co może mieć związek z ustawieniami akceleratorów,  dokładnością pomiaru sygnału GPS lub nawet zakłóceniami spowodowanymi niewystarczającą izolacją przewodów prądowych zasilających silniki.%TODO j.w. %ODP OK
+Do podstawowych należałby lepszy dobór ustawień programowych kamery w celu poprawy rejestrowanych kolorów. 
+Urządzenia sportowe tego typu są wyposażone w wiele usprawnień (tryb nocny, korekcja zniekształceń wprowadzanych przez obiektyw itp.), należy zatem zbadać wpływ ich zastosowania na działanie systemu wizyjnego. %TODO 2 nie jestem pewnien czy rektyfikacja w odniesinu do jednej kamery jest OK. lepiej korekcja zniekształceć wprowadzanych przez obiektwy. %ODP poprawiono, choć w ustawieniach kamery widniało dokładnie to wyrażenie
+Kolejną mogłaby być lepsza stabilizacja obrazu -- ze względu na podpięty do kamery dość sztywny przewód HDMI zmienia się jej środek ciężkości, co zaburza pracę gimbala -- silnik związany ze stabilizacją na jednej osi obrotu musiał być z tego powodu wyłączony. 
+Ostatnią zmianą, mającą największy wpływ na śledzenie, byłoby poprawienie właściwości lotnych drona. 
+Mowa tu głównie o problemach z płynnością ruchu oraz utrzymywaniem drona w~zadanej pozycji -- co może mieć związek z ustawieniami akceleratorów,  dokładnością pomiaru sygnału GPS lub nawet zakłóceniami spowodowanymi niewystarczającą izolacją przewodów prądowych zasilających silniki.
 
 Wykorzystanie układu rekonfigurowalnego na platformie UAV pozwala stworzyć ciekawe, a przy tym wartościowe naukowo projekty systemów wizyjnych lub systemów w inny sposób związanych z autonomizacją dronów.
-Podstawowym kierunkiem dla nowo tworzonych systemów mogłaby być zdolność omijania przeszkód (nadal kosztowna opcja w dronach komercyjnych). Detekcja mogłaby być realizowana przez specjalistyczne czujniki odległościowe, stereowizję lub nawet lidar. %TODO odległościowe, sterowizja, lidar %ODP OK
+Podstawowym kierunkiem dla nowo tworzonych systemów mogłaby być zdolność omijania przeszkód (nadal kosztowna opcja w dronach komercyjnych). Detekcja mogłaby być realizowana przez specjalistyczne czujniki odległości, stereowizję lub nawet LIDAR. 
 
 
 

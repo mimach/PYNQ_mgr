@@ -1,21 +1,32 @@
 \chapter{Koncepcja systemu śledzenia obiektów}
 \label{sec:koncepcja}
-Realizacja projektu śledzenia obiektów dla potrzeb nawigacji bezzałogowego statku powietrznego dotyczy detekcji osoby w postawie stojącej. Wymagane było tu zdefiniowanie kilku założeń:
+
+Realizacja projektu śledzenia obiektów dla potrzeb nawigacji bezzałogowego statku powietrznego dotyczy detekcji osoby w postawie stojącej. Na podstawie analizy obrazu wideo powinna być określona pozycja osoby względem drona, a w wyniku tego realizowane sterowanie, mające na celu utrzymać platformę w zadanej pozycji. Rysunek \ref{fig:tracking_scheme} przedstawia ideę takiego systemu.
+\begin{figure}[h]
+	\centering
+	\captionsetup{justification=centering,margin=1cm}
+	\includegraphics[width=10cm]{tracking_scheme.png}
+	\caption{Śledzenie osoby realizowane przez platformę UAV}
+	\label{fig:tracking_scheme}
+\end{figure}
+
+%TODO 2 tu jednak szerszy opis, moze rysunek poglądaowy (dron, ludzik te Pana parametry..). Bo to zadnie nie oddaje problemu.
+Wymagane było tu zdefiniowanie kilku założeń:
 \begin{itemize}
 	\item detekcja osoby znajdującej się jedynie w bezpośrednim otoczeniu drona, wewnątrz okręgu o promieniu do 7 metrów
 	\item śledzenie poprzez ruch całej platformy -- kamera jest nieruchoma, a jej pozycję dodatkowo stabilizuje gimbal kompensując wychylenia drona,
 	\item śledzenie w przestrzeni trójwymiarowej, z zadaną pozycją:
 	\begin{itemize}
-		\item przesunięcie względem osoby: $0$m, tj. osoba powinna znajdować się w centrum obrazu rejestrowanego przez kamerę
-		\item wysokość: około $1.5$m od ziemi
-		\item odległość: około $4$m od osoby
+		\item wysokość $a$: około $1.5$m od ziemi
+		\item odległość $b$: około $4$m od osoby
+		\item przesunięcie względem osoby $c$: $0$m, tj. osoba powinna znajdować się w centrum obrazu rejestrowanego przez kamerę		
 	\end{itemize} 
-	\item automatyzacja misji - do zadań użytkownika należy jedynie wydanie rozkazu startu z ziemi i zakończenia pracy, skutkującego lądowaniem
+	\item automatyzacja misji -- do zadań użytkownika należy jedynie wydanie rozkazu startu z~ ziemi i zakończenia pracy, skutkującego lądowaniem
 	\item możliwość awaryjnego przejęcia manualnej kontroli nad dronem
 	\item brak funkcjonalności, która zachowałoby ciągłość detekcji w przypadku pojawienia się drugiej osoby w otoczeniu głównego celu
 \end{itemize}
 
-%TODO Brakuje tu takiego rozdziału przedstawiającego koncepcję co Pan chce zrobić. Częściowo będzie to we wstępnie, ale raczej pobieżnie. Wydaje mi się, że dobrze by było w tym rozdziale opisać koncepcję systemu (rysunek), drona i potem przejść do omówienia poszczególnych komponentów. %ODP OK
+
 Dodatkowym warunkiem było oparcie prac na konstrukcji opisanej w kolejnych podrozdziałach.
 
 \section{Platforma UAV}
@@ -30,16 +41,16 @@ Platforma, na której realizowany jest projekt, składa się z następujących e
 	\item aparatura radiowa: FrSky Taranis X9D Plus,
 	\item odbiornik: FrSky X8D,
 	\item autopilot: 3DR Pixhawk.
+    \item platforma obliczeniowa: karta PYNQ z układem Zynq 7Z020.
 \end{itemize}
+%TODO 2 a nie dodać tutaj PYNQ jako platfomry obliczeniowej - potem Pan to wymienia %ODP OK
 
 Wybór komponentów, montaż platformy i jej kalibracja były częścią tej pracy i w ramach projektu SKN AVADER były dofinansowane ze środków Grantu Rektorskiego AGH 2015 oraz funduszy wydziału EAIiIB.
-%TODO do rozdziału 1 %ODP OK
-%TODO napisać wprost, że wybór komponentów, montaż itp. były a) elementem tej pracy, b) też że projektem rektorskim SKN AVADER. %ODP
 
 \section{Autopilot}
 
 Każdy dron byłby bezużyteczną konstrukcją, gdyby nie serce maszyny -- tzw. autopilot. 
-W tym przypadku postanowiono wykorzystać urządzenie Pixhawk. 
+W~tym przypadku postanowiono wykorzystać urządzenie Pixhawk. 
 Jest to zgodny ze standardami przemysłowymi moduł na otwartej licencji, stworzony przy współpracy z firmą 3D Robotics oraz ArduPilot Group. 
 Posiada następujące parametry:
 \begin{itemize}
@@ -58,17 +69,18 @@ Posiada następujące parametry:
 \end{figure}
 
 Powyższy sprzęt jednak nie jest w pełni skonfigurowany do pracy po wyjęciu z pudełka -- szczególnie, że jako produkt uniwersalny, bywa montowany na konstrukcjach o szerokim rozrzucie parametrów. 
-Może zapewnić sterowanie śmigłowcom (tzw. multicopterom), samolotom modelarskim oraz nawet łazikom. %TODO mam wątpliwość, czy słowo "kopter" jest poprawne. Skoro helikopter jest niepoprawny (był taki słynny przetarg..) to trzeba śmigłowiec. %ODP OK, do nawiasu wrzucono potoczną nazwę.
+Może zapewnić sterowanie śmigłowcom (tzw. multicopterom), samolotom modelarskim oraz nawet łazikom. 
 W przypadku dwóch pierwszych grup konfiguracja wiąże się ze zdefiniowaniem odpowiedniej liczby śmigieł i ich rozstawienia, typu aparatury radiowej oraz zewnętrznych urządzeń geolokalizacyjnych. 
 Tę dość dużą elastyczność mogą zapewnić dwa główne systemy, które są wczytywane z pamięci SD i pracują w czasie rzeczywistym. 
-Dedykowany, PX4 Flight Stack jest stworzony przez twórców modułu, oraz ArduPilot Copter (ArduCopter) -- niezależny, otwarty system, który został dostosowany do platformy Pixhawk z wykorzystaniem dostępnych narzędzi deweloperskich. 
+Dedykowany, PX4 Flight Stack jest stworzony przez twórców modułu, oraz ArduPilot Copter (ArduCopter) -- niezależny, otwarty system, który został dostosowany do platformy Pixhawk z~wykorzystaniem dostępnych narzędzi deweloperskich. 
 Ze względu na większą bazę użytkowników i dojrzałość projektu, wybrano drugie rozwiązanie.
 
-\section{Integracja urządzeń na platformie UAV} %TODO średni tytuł %ODP OK
+\section{Integracja urządzeń na platformie UAV} 
 
 Zbudowanie drona w oparciu o gotowe komponenty nie jest zadaniem skomplikowanym. 
-Jednak z uwagi na wymagania projektu (opisane w \ref{sec:koncepcja}), należało dokładnie przemyśleć jego przebudowę. Rysunek \ref{fig:drone_photo} przedstawia zdjęcie zmodyfikowanej, gotowej do lotu platformy. %TODO przerobić zdanie, że z uwagi na wymagania projektu - które powinny być opisane wcześniej. %ODP OK
-Z kolei schemat \ref{fig:architecture} opisuje połączenia pomiędzy urządzeniami na platformie UAV.  %TODO arch. sygnałową - dziwne określenie %ODP OK 
+Jednak z uwagi na wymagania projektu (opisane w \ref{sec:koncepcja}), należało dokładnie przemyśleć jego rozbudowę o układ PYNQ, zapewnienie zasilania i montaż na konstrukcji.  %TODO 2 - dlaczego przebudowę ? jesli dodanie tego PYNQ ? %ODP OK, rozbudowę - odpowied
+Rysunek \ref{fig:drone_photo} przedstawia zdjęcie zmodyfikowanej, gotowej do lotu platformy.
+Z kolei schemat \ref{fig:architecture} opisuje połączenia pomiędzy urządzeniami na platformie UAV.
 \begin{figure}[h]
 	\centering
 	\captionsetup{justification=centering,margin=1cm}
@@ -83,14 +95,13 @@ Z kolei schemat \ref{fig:architecture} opisuje połączenia pomiędzy urządzeni
 	\caption{Relacje pomiędzy urządzeniami na platformie UAV}
 	\label{fig:architecture}
 \end{figure}
-Linie czerwone określają dystrybucję zasilania z zamontowanej baterii (pominięto konwertery napięcia), natomiast linie czarne opisują propagację sygnałów pomiędzy urządzeniami. Dodatkowo, liniami przerywanymi zaznaczono sygnały opcjonalne wykorzystywane w trakcie naziemnej analizy systemu. Porty szeregowe komputera służą do komunikacji z konsolą zaimplementowaną na układzie Zynq, oraz do konfiguracji autopilota poprzez aplikację MISSION Planner.
+%TODO No to tu nie FPGA, a Zynq %ODP OK
+Linie czerwone określają dystrybucję zasilania z~zamontowanej baterii (pominięto konwertery napięcia), natomiast linie czarne opisują propagację sygnałów pomiędzy urządzeniami. 
+Dodatkowo, liniami przerywanymi zaznaczono sygnały opcjonalne wykorzystywane w trakcie naziemnej analizy systemu. 
+Porty szeregowe komputera służą do komunikacji z konsolą zaimplementowaną na układzie Zynq, oraz do konfiguracji autopilota poprzez aplikację MISSION Planner.
 
 
-%TODO brakuje omówienia rysunku. Trzeba go po prostu opisać w tekście. %ODP OK
-
-%TODO Brak referencji w txt. "skrywa" się potoczne. %ODP OK
-
-%TODO co to znaczy komputer w trakcie implementacji ? %ODP zamieniono linię na przerywaną (komputer jest opcjonalnie podłączany na ziemi w celu komunikacji z układami)
 
 
-%Generalnie nie mam pomysłu na to, gdzie wrzucić powyższe informacje związane z HW.
+
+

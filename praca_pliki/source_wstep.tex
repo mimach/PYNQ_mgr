@@ -1,62 +1,62 @@
 
 \begin{abstract}
-W tej pracy przedstawiona została sprzętowa realizacja detekcji i śledzenia osoby w wielu skalach, przy wykorzystaniu deskryptora HoG i klasyfikatora SVM, z niezależnym wsparciem algorytmu MeanShift. Zastosowanie potokowego przetwarzania obrazu pozwoliło na realizację obliczeń w czasie rzeczywistym dla sygnału wideo o rozdzielczości $1280\times 720$ i $60$ klatkach na sekundę dla algorytmu MeanShift i $30$ klatkach na sekundę dla metody HoG+SVM. Przedstawiany projekt został napisany w języku opisu sprzętu System Verilog i C++, oraz uruchomiony w układzie ZYNQ SoC znajdującym się na karcie uruchomieniowej PYNQ. %Nie wiem jak skategoryzować HOG+SVM, jeśli jest nie jest potokowo implementowany
 
-Moduł śledzenia postaci został zrealizowany na potrzeby wbudowanego systemu wizyjnego do sterowania bezzałogowym statkiem latającym realizującym zadanie utrzymywania stałej pozycji względem wykrytej osoby. Projekt systemu również został opisany w tej pracy.
+W pracy przedstawiona została sprzętowa realizacja detekcji i śledzenia osoby na potrzeby autonomizacji bezzałogowego statku powietrznego (UAV). System wizyjny stworzono przy wieloskalowym wykorzystaniu deskryptora HOG i klasyfikatora SVM, z niezależnym wsparciem algorytmu MeanShift. Zastosowanie potokowego przetwarzania obrazu pozwoliło na realizację obliczeń w czasie rzeczywistym dla sygnału wideo o rozdzielczości $1280\times 720$ i $60$ klatkach na sekundę dla algorytmu MeanShift i $30$ klatkach na sekundę dla metody HOG+SVM. Przedstawiany projekt został napisany w języku opisu sprzętu System Verilog i C++, oraz uruchomiony w układzie Zynq SoC znajdującym się na karcie uruchomieniowej PYNQ. %Nie wiem jak skategoryzować HOG+SVM, jeśli jest nie jest potokowo implementowany
+
+Dzięki wykorzystaniu heterogenicznego układu Zynq możliwe było zrealizowanie wbudowanego systemu wizyjnego do sterowania bezzałogowym statkiem latającym, realizującym zadanie utrzymywania stałej pozycji względem wykrytej osoby. Poprawne działanie systemu zostało zweryfikowane podczas praktycznych testów.
+%Projekt systemu również został opisany w tej pracy.
 \end{abstract}
 
 \selectlanguage{english} 
 \begin{abstract}
-This document describes hardware realization of multi-scale human detection and tracking, which was based on HoG descriptor and SVM classifier, with an independent support of a MeanShift algorithm. Pipelined image processing allowed to compute $1280\times 720$, $60$fps video signal in real time for MeanShift, and $30$fps for HoG+SVM method. Project was created in hardware description language - System Verilog - and C++, and was designed for ZYNQ SoC which is the part of a PYNQ board.
+This paper describes a hardware realization of human detection and tracking for unmanned aerial vehicle (UAV). The vision system -- based on a multi-scale approach -- was created using HOG descriptor and SVM classifier, with an independent support of a MeanShift algorithm. 
+Hardware implementation and pipelining of image processing allowed to compute $1280\times 720$, $60$fps video signal in real time for MeanShift, and $30$fps for HOG+SVM method. The project was created in hardware description language -- System Verilog -- and C++ and was designed for Zynq SoC which is the part of a PYNQ board.
 
-Human tracking model was created for an embedded vision system to control an unmanned aerial vehicle with an intention of following the detected person. That system has been described in this document as well.
+With a deployment on a heterogenous Zynq platform it was possible to create an embedded vision system, which allowed to control an unmanned aerial vehicle with an intention of following the detected person. The correct operation of this system was verified during practical tests.
+ %That system has been described in this document as well.
 \end{abstract}
+
+%TODO 2 Uwagi do abstraktu. Zasadniczo OK, ale... pierwsze zdanie trzeba skrócić i doać inforamcę o tym UAV. No taka parafraza tytułu. Potem już te algorytmy. Na koniec dodać jedno zdanie, np. Dzięki wkorzystaniu heterogrnicznego układu Zynq... udało się  oraz, że zostało to zweryfikowane w praktyce. %ODP OK
+
 \selectlanguage{polish} 
 \chapter{Wstęp}
 \label{cha:wstep}
 
-%TODO Przed tym proszę umieścić abstrakt PL i EN na jednej stronie (po kilka zdań).
-%TODO Jakoś nie uważam, aby takie spisy tablic, rysunków itp. były potrzebne w takiej pracy - usunąć. %ODP OK
 Bezzałogowe statki powietrzne, potocznie nazywane dronami, zyskują w ostatnich latach coraz większe zainteresowanie. 
 Według raportu portalu Business Insider z czerwca 2016 roku \cite{BInsider}, światowy rynek bezzałogowych statków powietrznych powiększy swoją wartość z niecałych 6 mld \$ w 2013 roku do prawie 13 mld \$ w roku 2024. 
-Biorąc pod uwagę podstawowy podział maszyn -- ze względu na przeznaczenie -- raport ten wskazuje na rosnący trend zarówno w przypadku przemysłu obronnego, jak i cywilnego. Można uwzględnić zastosowania m.in. w następujących branżach:
+Biorąc pod uwagę podstawowy podział maszyn -- ze względu na przeznaczenie -- raport ten wskazuje na rosnący trend zarówno w przypadku przemysłu obronnego, jak i cywilnego. Można uwzględnić zastosowania m.in. w~następujących branżach:
 \begin{itemize}
 	\item transport -- dostarczanie przesyłek,
 	\item przemysł filmowy -- realizacja stabilnych ujęć lotniczych,
 	\item rolnictwo -- stosowanie oprysków, nadzór nad wypasem zwierząt,
-	\item górnictwo -- skanowanie otoczenia, ocena infrastruktury kopalni, monitorowanie szybów, transport części do morskich platform wydobywczych,
 	\item ekologia -- pomiar zanieczyszczeń na danym obszarze,
 	\item ratownictwo medyczne -- transport krwi lub urządzeń ratujących życie, poszukiwanie osób zaginionych.
 \end{itemize}
-Tak gwałtowny wzrost popularności niesie ze sobą potrzebę tworzenia nowych rozwiązań, którym sprzyja ogólny rozwój technologiczny i dostępność wielu elementów elektronicznych -- czujników, modułów komunikacyjnych, autopilotów; stopniowej poprawie ulega też kwestia zasilania bateryjnego i związany z nią maksymalny czas pracy. %TODO tj. %ODP OK
+Tak gwałtowny wzrost popularności niesie ze sobą potrzebę tworzenia nowych rozwiązań, którym sprzyja ogólny rozwój technologiczny i dostępność wielu elementów elektronicznych -- czujników, modułów komunikacyjnych, autopilotów; stopniowej poprawie ulega też kwestia zasilania bateryjnego i związany z nią maksymalny czas pracy. 
 
 Jedno z głównych zadań, jakie stoi przed inżynierami, to autonomizacja dronów, czyli nadanie im możliwości pracy bez nadzoru człowieka.
-Oznacza to wyposażenie ich w odpowiednie urządzenia elektroniczne i rozwiązania służące do realizacji określonego sterowania w oparciu o zebrane informacje. Przykładem takiego zadania jest śledzenie obiektu na podstawie informacji wizyjnej. Po inicjalizacji, która polega na wskazaniu celu (lub jego detekcji) następuje określenie jego położenia w kolejnych klatkach obrazu. Na tej podstawie generowane jest sterowanie ruchem drona, które w efekcie ma dążyć do utrzymania obiektu w określonej pozycji na rejestrowanym obrazie.
+Oznacza to wyposażenie ich w odpowiednie urządzenia elektroniczne i rozwiązania służące do realizacji określonego sterowania w oparciu o zebrane informacje. 
+Przykładem takiego zadania jest śledzenie obiektu na podstawie informacji wizyjnej. 
+Po inicjalizacji, która polega na wskazaniu celu (lub jego detekcji) następuje określenie jego położenia w kolejnych klatkach obrazu. 
+Na tej podstawie generowane jest sterowanie ruchem drona, które w efekcie ma dążyć do utrzymania obiektu w określonej pozycji na rejestrowanym obrazie.
 
-Biorąc pod uwagę główne systemy elektroniczne drona, większość platform bazuje na podejściu sekwencyjnym, realizowanym na mikrokontrolerach lub procesorach sygnałowych. Dodanie nowych funkcjonalności - zwłaszcza związanych z autonomizacją - często wykracza poza możliwości obliczeniowe wspomnianych układów. Ponadto ograniczenia związane maksymalną ładownością drona i pojemnością baterii wykluczają wykorzystanie większych i często energochłonnych jednostek.  Z tego względu naukowcy i firmy związane z rynkiem maszyn bezzałogowych coraz chętniej rozważają stosowanie układów rekonfigurowalnych.
+Biorąc pod uwagę główne systemy elektroniczne drona, większość platform bazuje na podejściu sekwencyjnym, realizowanym na mikrokontrolerach lub procesorach sygnałowych. Dodanie nowych funkcjonalności -- zwłaszcza związanych z autonomizacją -- często wykracza poza możliwości obliczeniowe wspomnianych układów. 
+Ponadto ograniczenia związane maksymalną ładownością drona i pojemnością baterii wykluczają wykorzystanie większych i często energochłonnych jednostek.  
+Z tego względu naukowcy i firmy związane z rynkiem maszyn bezzałogowych coraz chętniej rozważają stosowanie układów rekonfigurowalnych.
 
-%TODO mówiąc uczciwie - trzeba to ciut rozbudować. Omówić różne zastosowania dronów, poszerzyć temat autonomiczności, pokazać na czym polega śledznie i poruszyć temat platform obliczeniowych.%ODP OK
+
 
 \section{Cel pracy}
 
-%TODO rozbudować zgodnie ze specyfikację (załączona do maila, tekst latex ponieżej%ODP OK
-%TODO - tylko przerobić i na czas przeszły %ODP OK
-%ODP poprawione
-Celem pracy była realizacja systemu nawigacji bezzałogowego, 
-autonomicznego statku powietrznego w oparciu o informację wizyjną. 
+Celem pracy była realizacja systemu nawigacji bezzałogowego, autonomicznego statku powietrznego w oparciu o informację wizyjną. 
 Założeniem zadania było śledzenie obiektu zdefiniowanego podczas inicjalizacji. 
-Pierwszym etapem prac był przegląd artykułów związanych z algorytmami śledzenia 
+Pierwszym etapem prac był przegląd artykułów związanych z~algorytmami śledzenia 
 zaimplementowanymi we wbudowanych systemach rekonfigurowalnych 
-(FPGA/ZYNQ), przy czym preferowane były rozwiązania zbliżone do tematu pracy. 
+(FPGA/Zynq), przy czym preferowane były rozwiązania zbliżone do tematu pracy. 
 
-Na tej podstawie wybrano dwa podejścia i zaimplementowano je programowo, 
-analizując ich pracę na materiale wideo zbliżonym do docelowego. 
-Kolejnym etapem była sprzętowa implementacja algorytmów w układzie, 
-której proces był zgodny z typową metodologią obejmującą: stworzenie modelu programowego, 
-rozwój wymaganych modułów, testy symulacyjne oraz testy w sprzęcie.
-Ostatnie zadanie stanowiła integracja układu z platformą UAV, 
-zrealizowanie komunikacji pomiędzy modułem wizyjnym, 
-układem reprogramowalnym i autopilotem. 
+Na tej podstawie wybrano dwa podejścia i zaimplementowano je programowo, analizując ich pracę na materiale wideo zbliżonym do docelowego. 
+Kolejnym etapem była sprzętowa implementacja algorytmów w układzie, której proces był zgodny z typową metodologią obejmującą: stworzenie modelu programowego, rozwój wymaganych modułów, testy symulacyjne oraz testy w sprzęcie.
+Ostatnie zadanie stanowiła integracja układu z platformą UAV, zrealizowanie komunikacji pomiędzy modułem wizyjnym, układem reprogramowalnym i autopilotem. 
 Docelowo miał powstać prototyp bezzałogowego statku powietrznego, zdolnego podążać za wybraną osobą.
 
 
@@ -65,12 +65,14 @@ Docelowo miał powstać prototyp bezzałogowego statku powietrznego, zdolnego po
 
 \section{Struktura pracy}
 
-Rozdział drugi opisuje przegląd artykułów naukowych i dostępnych rozwiązań nawiązujących do tematu pracy.
-Rozdział trzeci poświęcono opisowi algorytmów śledzenia, a następnie skoncentrowano się na dokładnym przedstawieniu zagadnień związanych z HoG+SVM oraz MeanShift. %TODO ale jakich algorytmów ? wszystkich ? %ODP poprawiono
-W rozdziale czwartym pokrótce przedstawiono zrealizowane modele programowe, które następnie przeniesiono na system wbudowany -- co zostało opisane w rozdziale 5.
-Ponadto, część 5 zawiera informacje o konfiguracji sprzętowej oraz o wyższej warstwie decyzyjnej. 
-Część 6 prezentuje proces testów poświęconych tworzonemu rozwiązaniu. 
-Ostatni rozdział stanowi przedstawienie wniosków i wskazuje możliwe kierunki rozwoju pracy.
+Rozdział drugi opisuje koncepcję śledzenia obiektów dla potrzeb bezzałogowego statku powietrznego.
+W rozdziale trzecim przedstawiono przegląd artykułów naukowych i dostępnych rozwiązań nawiązujących do tematu pracy.
+Rozdział czwarty poświęcono opisowi algorytmów śledzenia, a następnie skoncentrowano się na dokładnym przedstawieniu zagadnień związanych z metodami HoG+SVM oraz MeanShift. 
+W rozdziale piątym pokrótce przedstawiono zrealizowane modele programowe, które następnie przeniesiono na system wbudowany -- co zostało opisane w rozdziale 5.
+Ponadto, część 6 zawiera informacje o konfiguracji sprzętowej oraz o wyższej warstwie decyzyjnej. 
+Część 7 prezentuje proces testów poświęconych tworzonemu rozwiązaniu. 
+W ostatnim rozdziale przedstawiono wnioski i wskazano możliwe kierunki rozwoju pracy.
+%TODO 2 stanowi przedstawienie - takie średnie styl. %ODP OK
 
 
 
